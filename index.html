@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kiktev CRM</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#0f172a;color:#fff}
@@ -52,13 +55,14 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 <div class="stat">👥 Всего клиентов<br><b id="totalCount">0</b></div>
 </div>
 
-<div class="attention" id="attentionBox">
+<div class="attention">
 <h2>🔥 Требуют внимания</h2>
 <div id="attentionList"></div>
 </div>
 
 <div class="actions">
 <button onclick="openNewClient()">+ Новый клиент</button>
+<button class="gray" onclick="loadClients()">🔄 Обновить</button>
 <input class="search" id="searchInput" placeholder="Поиск по имени или телефону" oninput="render()">
 </div>
 
@@ -85,7 +89,7 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 </select>
 </div>
 
-<div><label>Подробный источник</label><input id="sourceDetail" placeholder="Reels, Stories, группа MAX..."></div>
+<div><label>Подробный источник</label><input id="sourceDetail"></div>
 
 <div>
 <label>Статус</label>
@@ -139,9 +143,9 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 </select>
 </div>
 
-<div><label>Бюджет до</label><input id="budget" placeholder="например 6 000 000"></div>
-<div><label>Первый взнос</label><input id="firstPay" placeholder="например 800 000"></div>
-<div><label>Комфортный платёж</label><input id="monthPay" placeholder="например 35 000"></div>
+<div><label>Бюджет до</label><input id="budget"></div>
+<div><label>Первый взнос</label><input id="firstPay"></div>
+<div><label>Комфортный платёж</label><input id="monthPay"></div>
 
 <div>
 <label>Условия покупки</label>
@@ -172,13 +176,13 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 </div>
 
 <label>Причина следующего контакта</label>
-<input id="nextReason" placeholder="Например: ждёт одобрение, советуется с супругой">
+<input id="nextReason">
 
 <label>Быстрая заметка</label>
-<textarea id="note" rows="3" placeholder="Например: звонить после 18:00, решение принимает жена..."></textarea>
+<textarea id="note" rows="3"></textarea>
 
 <label>История / комментарий</label>
-<textarea id="historyText" rows="3" placeholder="Что было сделано по клиенту"></textarea>
+<textarea id="historyText" rows="3"></textarea>
 
 <div class="actions">
 <button onclick="saveClient()">Сохранить</button>
@@ -199,13 +203,14 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 </div>
 
 <script>
-const statuses = ["Новый лид","Связался","Подбор","Отправлены варианты","Показ","Бронь","Потерян","Архив сделок"];
-let clients = JSON.parse(localStorage.getItem("crmClients") || "[]");
-let currentId = null;
+const SUPABASE_URL = "https://fgpsgastvwobawvjyugi.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZncHNnYXN0d3dvYmF3dmp5dWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NzQ1MjIsImV4cCI6MjA5NjA1MDUyMn0.ntOpGE7iAS30-9fEoxIuO-IwtIsLh9weKN22TkYbwAk";
 
-function saveStorage(){
-localStorage.setItem("crmClients", JSON.stringify(clients));
-}
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const statuses = ["Новый лид","Связался","Подбор","Отправлены варианты","Показ","Бронь","Потерян","Архив сделок"];
+let clients = [];
+let currentId = null;
 
 function cleanPhone(phone){
 return (phone || "").replace(/\D/g,"");
@@ -222,6 +227,72 @@ if(!dateStr) return "нет даты";
 return dateStr.split("-").reverse().join(".");
 }
 
+function mapFromDb(c){
+return {
+id:c.id,
+name:c.name,
+phone:c.phone,
+source:c.source,
+sourceDetail:c.source_detail,
+status:c.status,
+clientType:c.client_type,
+requestType:c.request_type,
+city:c.city,
+district:c.district,
+budget:c.budget,
+firstPay:c.first_pay,
+monthPay:c.month_pay,
+dealType:c.deal_type,
+tag:c.tag,
+nextAction:c.next_action,
+reminderDate:c.reminder_date,
+nextReason:c.next_reason,
+note:c.note,
+history:c.history || [],
+createdAt:c.created_at,
+updatedAt:c.updated_at
+};
+}
+
+function mapToDb(c){
+return {
+name:c.name,
+phone:c.phone,
+source:c.source,
+source_detail:c.sourceDetail,
+status:c.status,
+client_type:c.clientType,
+request_type:c.requestType,
+city:c.city,
+district:c.district,
+budget:c.budget,
+first_pay:c.firstPay,
+month_pay:c.monthPay,
+deal_type:c.dealType,
+tag:c.tag,
+next_action:c.nextAction,
+reminder_date:c.reminderDate || null,
+next_reason:c.nextReason,
+note:c.note,
+history:c.history || []
+};
+}
+
+async function loadClients(){
+const { data, error } = await db
+.from("clients")
+.select("*")
+.order("created_at", { ascending:false });
+
+if(error){
+alert("Ошибка загрузки из Supabase: " + error.message);
+return;
+}
+
+clients = data.map(mapFromDb);
+render();
+}
+
 function render(){
 const board = document.getElementById("board");
 const q = document.getElementById("searchInput").value.toLowerCase();
@@ -234,7 +305,7 @@ col.innerHTML = `<h3>${st}</h3>`;
 
 clients
 .filter(c=>c.status===st)
-.filter(c=>(c.name+c.phone).toLowerCase().includes(q))
+.filter(c=>(String(c.name)+String(c.phone)).toLowerCase().includes(q))
 .forEach(c=>{
 const card = document.createElement("div");
 card.className = "card";
@@ -328,10 +399,7 @@ document.getElementById("clientModal").style.display = "flex";
 function renderQuickButtons(phone){
 const box = document.getElementById("quickButtons");
 const p = cleanPhone(phone);
-if(!p){
-box.innerHTML = "";
-return;
-}
+if(!p){box.innerHTML="";return;}
 box.innerHTML = `
 <a href="tel:+${p}"><button>📞 Позвонить</button></a>
 <a href="https://wa.me/${p}" target="_blank"><button>💬 WhatsApp</button></a>
@@ -359,7 +427,7 @@ obj[id]=document.getElementById(id).value;
 return obj;
 }
 
-function saveClient(){
+async function saveClient(){
 const data = collectForm();
 const now = new Date().toLocaleString("ru-RU");
 const phone = cleanPhone(data.phone);
@@ -392,68 +460,73 @@ if(!continueCreate) return;
 }
 
 if(currentId){
-const c = clients.find(x=>x.id===currentId);
-const oldStatus = c.status;
+const old = clients.find(x=>x.id===currentId);
+const oldStatus = old.status;
 
-Object.assign(c,data);
-c.updatedAt = now;
-c.history = c.history || [];
+data.history = old.history || [];
 
 if(oldStatus !== data.status){
-c.history.unshift({date:now,text:`Статус изменён: ${oldStatus} → ${data.status}`});
+data.history.unshift({date:now,text:`Статус изменён: ${oldStatus} → ${data.status}`});
 }
 
-c.history.unshift({date:now,text:"Карточка обновлена"});
+data.history.unshift({date:now,text:"Карточка обновлена"});
+
+const { error } = await db
+.from("clients")
+.update(mapToDb(data))
+.eq("id", currentId);
+
+if(error){alert("Ошибка сохранения: " + error.message);return;}
+
 }else{
-data.id = Date.now();
-data.createdAt = now;
-data.updatedAt = now;
 data.history = [{date:now,text:"Клиент создан"}];
-
-const archivedClient = clients.find(c =>
-cleanPhone(c.phone) === phone &&
-c.status === "Архив сделок"
-);
-
-if(archivedClient){
-data.history.unshift({date:now,text:`Новая карточка. Ранее клиент был в архиве сделок: ${archivedClient.name}`});
-}
 
 const firstHistory = document.getElementById("historyText").value.trim();
 if(firstHistory){
 data.history.unshift({date:now,text:firstHistory});
 }
 
-clients.unshift(data);
-currentId = data.id;
+const { data: inserted, error } = await db
+.from("clients")
+.insert(mapToDb(data))
+.select()
+.single();
+
+if(error){alert("Ошибка создания: " + error.message);return;}
+
+currentId = inserted.id;
 }
 
-saveStorage();
-render();
+await loadClients();
 openClient(currentId);
 }
 
-function addHistory(){
-if(!currentId){saveClient(); return;}
+async function addHistory(){
+if(!currentId){await saveClient(); return;}
 const text = document.getElementById("historyText").value.trim();
 if(!text) return alert("Напиши комментарий в поле истории");
 
-quickHistory(text);
+await quickHistory(text);
 document.getElementById("historyText").value="";
 }
 
-function quickHistory(text){
+async function quickHistory(text){
 if(!currentId){alert("Сначала сохрани клиента"); return;}
 
 const c = clients.find(x=>x.id===currentId);
 const now = new Date().toLocaleString("ru-RU");
 c.history = c.history || [];
 c.history.unshift({date:now,text});
-c.updatedAt = now;
 
-saveStorage();
-renderHistory(c.history);
-render();
+const { error } = await db
+.from("clients")
+.update({history:c.history})
+.eq("id", currentId);
+
+if(error){alert("Ошибка истории: " + error.message);return;}
+
+await loadClients();
+openClient(currentId);
 }
 
 function renderHistory(history){
@@ -468,20 +541,22 @@ box.innerHTML += `<div style="margin-bottom:10px;border-bottom:1px solid #334155
 });
 }
 
-function deleteClient(){
+async function deleteClient(){
 if(!currentId) return closeModal();
 if(!confirm("Удалить клиента?")) return;
-clients = clients.filter(c=>c.id!==currentId);
-saveStorage();
+
+const { error } = await db.from("clients").delete().eq("id", currentId);
+if(error){alert("Ошибка удаления: " + error.message);return;}
+
 closeModal();
-render();
+await loadClients();
 }
 
 function closeModal(){
 document.getElementById("clientModal").style.display = "none";
 }
 
-render();
+loadClients();
 </script>
 
 </body>
