@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kiktev CRM</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -21,6 +20,7 @@ h1{color:#d4af37;font-size:26px}
 .attention-card{background:#111827;border-radius:12px;padding:10px;margin:8px 0;cursor:pointer}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 button{background:#d4af37;color:#000;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6;cursor:not-allowed}
 input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin-top:6px;margin-bottom:10px}
 .search{max-width:420px}
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:20px}
@@ -67,7 +67,6 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 </div>
 
 <div class="board" id="board"></div>
-
 </div>
 
 <div class="modal" id="clientModal">
@@ -80,97 +79,70 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 <div><label>Имя</label><input id="name"></div>
 <div><label>Телефон</label><input id="phone"></div>
 
-<div>
-<label>Источник</label>
+<div><label>Источник</label>
 <select id="source">
 <option>Звонок</option><option>Instagram</option><option>MAX</option>
 <option>Telegram</option><option>WhatsApp</option><option>Авито</option>
 <option>Сайт</option><option>Рекомендация</option><option>Реклама</option><option>Другое</option>
-</select>
-</div>
+</select></div>
 
 <div><label>Подробный источник</label><input id="sourceDetail"></div>
 
-<div>
-<label>Статус</label>
+<div><label>Статус</label>
 <select id="status">
-<option>Новый лид</option>
-<option>Связался</option>
-<option>Подбор</option>
-<option>Отправлены варианты</option>
-<option>Показ</option>
-<option>Бронь</option>
-<option>Потерян</option>
-<option>Архив сделок</option>
-</select>
-</div>
+<option>Новый лид</option><option>Связался</option><option>Подбор</option>
+<option>Отправлены варианты</option><option>Показ</option><option>Бронь</option>
+<option>Потерян</option><option>Архив сделок</option>
+</select></div>
 
-<div>
-<label>Тип клиента</label>
+<div><label>Тип клиента</label>
 <select id="clientType">
 <option>Покупатель</option><option>Продавец</option><option>Инвестор</option><option>Агент</option>
-</select>
-</div>
+</select></div>
 
-<div>
-<label>Что ищет</label>
+<div><label>Что ищет</label>
 <select id="requestType">
-<option>Новостройка</option>
-<option>Вторичное жильё</option>
-<option>Дом</option>
-<option>Дом от собственника</option>
-<option>Коммерческое помещение</option>
-<option>Апартаменты</option>
-<option>Земля</option>
-<option>Продажа объекта</option>
-</select>
-</div>
+<option>Новостройка</option><option>Вторичное жильё</option><option>Дом</option>
+<option>Дом от собственника</option><option>Коммерческое помещение</option>
+<option>Апартаменты</option><option>Земля</option><option>Продажа объекта</option>
+</select></div>
 
-<div>
-<label>Город</label>
+<div><label>Город</label>
 <select id="city">
-<option>Краснодар</option><option>Адыгея</option><option>Сочи</option><option>Анапа</option>
-<option>Новороссийск</option><option>Горячий Ключ</option><option>Город не знает</option><option>Другое</option>
-</select>
-</div>
+<option>Краснодар</option><option>Адыгея</option><option>Сочи</option>
+<option>Анапа</option><option>Новороссийск</option><option>Горячий Ключ</option>
+<option>Город не знает</option><option>Другое</option>
+</select></div>
 
-<div>
-<label>Район</label>
+<div><label>Район</label>
 <select id="district">
 <option>Любимово</option><option>Западный обход</option><option>Губернский</option>
 <option>Энка</option><option>Молодёжный</option><option>Немецкая деревня</option>
 <option>Район не имеет значения</option><option>Не знает район</option><option>Другое</option>
-</select>
-</div>
+</select></div>
 
 <div><label>Бюджет до</label><input id="budget"></div>
 <div><label>Первый взнос</label><input id="firstPay"></div>
 <div><label>Комфортный платёж</label><input id="monthPay"></div>
 
-<div>
-<label>Условия покупки</label>
+<div><label>Условия покупки</label>
 <select id="dealType">
-<option>Семейная до 7 лет</option><option>Семейная 2 детей</option><option>Маткапитал</option>
-<option>IT ипотека</option><option>Военная ипотека</option><option>Рассрочка</option>
-<option>Наличные</option><option>Стандартная ипотека</option><option>Не знает</option>
-</select>
-</div>
+<option>Семейная до 7 лет</option><option>Семейная 2 детей</option>
+<option>Маткапитал</option><option>IT ипотека</option><option>Военная ипотека</option>
+<option>Рассрочка</option><option>Наличные</option><option>Стандартная ипотека</option><option>Не знает</option>
+</select></div>
 
-<div>
-<label>Метка</label>
+<div><label>Метка</label>
 <select id="tag">
 <option>Горячий</option><option>Тёплый</option><option>Холодный</option>
 <option>Агент</option><option>Проблемный</option><option>Не работать</option><option>VIP</option>
-</select>
-</div>
+</select></div>
 
-<div>
-<label>Следующее действие</label>
+<div><label>Следующее действие</label>
 <select id="nextAction">
 <option>Перезвонить</option><option>Отправить подборку</option><option>Встреча</option>
 <option>Показ</option><option>Узнать решение</option><option>Другое</option>
-</select>
-</div>
+</select></div>
 
 <div><label>Дата напоминания</label><input type="date" id="reminderDate"></div>
 </div>
@@ -185,7 +157,7 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 <textarea id="historyText" rows="3"></textarea>
 
 <div class="actions">
-<button onclick="saveClient()">Сохранить</button>
+<button id="saveBtn" onclick="saveClient()">Сохранить</button>
 <button class="gray" onclick="addHistory()">+ Добавить историю</button>
 <button class="quick" onclick="quickHistory('Перезвонил клиенту')">📞 Перезвонил</button>
 <button class="quick" onclick="quickHistory('Отправил подборку')">📨 Отправил подборку</button>
@@ -211,10 +183,9 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const statuses = ["Новый лид","Связался","Подбор","Отправлены варианты","Показ","Бронь","Потерян","Архив сделок"];
 let clients = [];
 let currentId = null;
+let isSaving = false;
 
-function cleanPhone(phone){
-return (phone || "").replace(/\D/g,"");
-}
+function cleanPhone(phone){return (phone || "").replace(/\D/g,"");}
 
 function todayStr(offset=0){
 const d = new Date();
@@ -229,66 +200,29 @@ return dateStr.split("-").reverse().join(".");
 
 function mapFromDb(c){
 return {
-id:c.id,
-name:c.name,
-phone:c.phone,
-source:c.source,
-sourceDetail:c.source_detail,
-status:c.status,
-clientType:c.client_type,
-requestType:c.request_type,
-city:c.city,
-district:c.district,
-budget:c.budget,
-firstPay:c.first_pay,
-monthPay:c.month_pay,
-dealType:c.deal_type,
-tag:c.tag,
-nextAction:c.next_action,
-reminderDate:c.reminder_date,
-nextReason:c.next_reason,
-note:c.note,
-history:c.history || [],
-createdAt:c.created_at,
-updatedAt:c.updated_at
+id:c.id,name:c.name,phone:c.phone,source:c.source,sourceDetail:c.source_detail,
+status:c.status,clientType:c.client_type,requestType:c.request_type,city:c.city,
+district:c.district,budget:c.budget,firstPay:c.first_pay,monthPay:c.month_pay,
+dealType:c.deal_type,tag:c.tag,nextAction:c.next_action,reminderDate:c.reminder_date,
+nextReason:c.next_reason,note:c.note,history:c.history || [],
+createdAt:c.created_at,updatedAt:c.updated_at
 };
 }
 
 function mapToDb(c){
 return {
-name:c.name,
-phone:c.phone,
-source:c.source,
-source_detail:c.sourceDetail,
-status:c.status,
-client_type:c.clientType,
-request_type:c.requestType,
-city:c.city,
-district:c.district,
-budget:c.budget,
-first_pay:c.firstPay,
-month_pay:c.monthPay,
-deal_type:c.dealType,
-tag:c.tag,
-next_action:c.nextAction,
-reminder_date:c.reminderDate || null,
-next_reason:c.nextReason,
-note:c.note,
-history:c.history || []
+name:c.name,phone:c.phone,source:c.source,source_detail:c.sourceDetail,
+status:c.status,client_type:c.clientType,request_type:c.requestType,city:c.city,
+district:c.district,budget:c.budget,first_pay:c.firstPay,month_pay:c.monthPay,
+deal_type:c.dealType,tag:c.tag,next_action:c.nextAction,
+reminder_date:c.reminderDate || null,next_reason:c.nextReason,note:c.note,
+history:c.history || [],updated_at:new Date().toISOString()
 };
 }
 
 async function loadClients(){
-const { data, error } = await db
-.from("clients")
-.select("*")
-.order("created_at", { ascending:false });
-
-if(error){
-alert("Ошибка загрузки из Supabase: " + error.message);
-return;
-}
-
+const { data, error } = await db.from("clients").select("*").order("created_at",{ascending:false});
+if(error){alert("Ошибка загрузки из Supabase: " + error.message);return;}
 clients = data.map(mapFromDb);
 render();
 }
@@ -303,8 +237,7 @@ const col = document.createElement("div");
 col.className = "column";
 col.innerHTML = `<h3>${st}</h3>`;
 
-clients
-.filter(c=>c.status===st)
+clients.filter(c=>c.status===st)
 .filter(c=>(String(c.name)+String(c.phone)).toLowerCase().includes(q))
 .forEach(c=>{
 const card = document.createElement("div");
@@ -319,11 +252,9 @@ card.innerHTML = `
 <small>📅 ${c.nextAction || ""}: ${formatDate(c.reminderDate)}</small><br>
 ${c.nextReason ? `<small>📝 ${c.nextReason}</small><br>` : ""}
 <span class="tag">${c.tag || ""}</span>
-<span class="tag">${c.source || ""}</span>
-`;
+<span class="tag">${c.source || ""}</span>`;
 col.appendChild(card);
 });
-
 board.appendChild(col);
 });
 
@@ -334,7 +265,6 @@ renderAttention();
 function updateStats(){
 const today = todayStr(0);
 const tomorrow = todayStr(1);
-
 document.getElementById("totalCount").innerText = clients.length;
 document.getElementById("todayCount").innerText = clients.filter(c=>c.reminderDate===today && c.status!=="Архив сделок").length;
 document.getElementById("tomorrowCount").innerText = clients.filter(c=>c.reminderDate===tomorrow && c.status!=="Архив сделок").length;
@@ -344,30 +274,16 @@ document.getElementById("overdueCount").innerText = clients.filter(c=>c.reminder
 function renderAttention(){
 const list = document.getElementById("attentionList");
 const today = todayStr(0);
+const items = clients.filter(c=>c.reminderDate && c.reminderDate<=today && c.status!=="Архив сделок" && c.status!=="Потерян");
 
-const items = clients.filter(c =>
-c.reminderDate &&
-c.reminderDate <= today &&
-c.status !== "Архив сделок" &&
-c.status !== "Потерян"
-);
-
-if(!items.length){
-list.innerHTML = "<small>Сейчас срочных задач нет</small>";
-return;
-}
+if(!items.length){list.innerHTML = "<small>Сейчас срочных задач нет</small>";return;}
 
 list.innerHTML = "";
 items.forEach(c=>{
 const div = document.createElement("div");
 div.className = "attention-card";
 div.onclick = ()=>openClient(c.id);
-div.innerHTML = `
-<b>${c.name || "Без имени"}</b><br>
-📞 ${c.phone || ""}<br>
-⚠ ${c.nextAction || "Действие"} — ${formatDate(c.reminderDate)}<br>
-${c.nextReason ? `📝 ${c.nextReason}` : ""}
-`;
+div.innerHTML = `<b>${c.name || "Без имени"}</b><br>📞 ${c.phone || ""}<br>⚠ ${c.nextAction || "Действие"} — ${formatDate(c.reminderDate)}<br>${c.nextReason ? `📝 ${c.nextReason}` : ""}`;
 list.appendChild(div);
 });
 }
@@ -400,10 +316,7 @@ function renderQuickButtons(phone){
 const box = document.getElementById("quickButtons");
 const p = cleanPhone(phone);
 if(!p){box.innerHTML="";return;}
-box.innerHTML = `
-<a href="tel:+${p}"><button>📞 Позвонить</button></a>
-<a href="https://wa.me/${p}" target="_blank"><button>💬 WhatsApp</button></a>
-`;
+box.innerHTML = `<a href="tel:+${p}"><button>📞 Позвонить</button></a><a href="https://wa.me/${p}" target="_blank"><button>💬 WhatsApp</button></a>`;
 }
 
 function clearForm(){
@@ -428,55 +341,45 @@ return obj;
 }
 
 async function saveClient(){
+if(isSaving) return;
+
+const btn = document.getElementById("saveBtn");
+isSaving = true;
+btn.disabled = true;
+btn.innerText = "Сохраняю...";
+
+try{
 const data = collectForm();
 const now = new Date().toLocaleString("ru-RU");
 const phone = cleanPhone(data.phone);
 
-if(!currentId && phone){
-const activeDuplicate = clients.find(c =>
-cleanPhone(c.phone) === phone &&
-c.status !== "Архив сделок"
-);
-
-if(activeDuplicate){
-const openExisting = confirm(
-`Клиент с таким номером уже есть в работе:\n\n${activeDuplicate.name}\n${activeDuplicate.phone}\n\nОткрыть карточку?`
-);
-if(openExisting) openClient(activeDuplicate.id);
+if(!data.name && !data.phone){
+alert("Заполни хотя бы имя или телефон");
 return;
 }
 
-const archivedClient = clients.find(c =>
-cleanPhone(c.phone) === phone &&
-c.status === "Архив сделок"
-);
-
-if(archivedClient){
-const continueCreate = confirm(
-`Этот клиент уже есть в архиве сделок:\n\n${archivedClient.name}\n${archivedClient.phone}\n\nМожно создать новую карточку с новым запросом. Создать?`
-);
-if(!continueCreate) return;
+if(!currentId && phone){
+const activeDuplicate = clients.find(c=>cleanPhone(c.phone)===phone && c.status!=="Архив сделок");
+if(activeDuplicate){
+if(confirm(`Клиент с таким номером уже есть:\n\n${activeDuplicate.name}\n${activeDuplicate.phone}\n\nОткрыть карточку?`)){
+openClient(activeDuplicate.id);
+}
+return;
 }
 }
 
 if(currentId){
 const old = clients.find(x=>x.id===currentId);
-const oldStatus = old.status;
-
 data.history = old.history || [];
 
-if(oldStatus !== data.status){
-data.history.unshift({date:now,text:`Статус изменён: ${oldStatus} → ${data.status}`});
+if(old.status !== data.status){
+data.history.unshift({date:now,text:`Статус изменён: ${old.status} → ${data.status}`});
 }
 
 data.history.unshift({date:now,text:"Карточка обновлена"});
 
-const { error } = await db
-.from("clients")
-.update(mapToDb(data))
-.eq("id", currentId);
-
-if(error){alert("Ошибка сохранения: " + error.message);return;}
+const { error } = await db.from("clients").update(mapToDb(data)).eq("id", currentId);
+if(error) throw error;
 
 }else{
 data.history = [{date:now,text:"Клиент создан"}];
@@ -486,26 +389,27 @@ if(firstHistory){
 data.history.unshift({date:now,text:firstHistory});
 }
 
-const { data: inserted, error } = await db
-.from("clients")
-.insert(mapToDb(data))
-.select()
-.single();
-
-if(error){alert("Ошибка создания: " + error.message);return;}
-
+const { data: inserted, error } = await db.from("clients").insert(mapToDb(data)).select().single();
+if(error) throw error;
 currentId = inserted.id;
 }
 
 await loadClients();
 openClient(currentId);
+
+}catch(error){
+alert("Ошибка сохранения: " + error.message);
+}finally{
+isSaving = false;
+btn.disabled = false;
+btn.innerText = "Сохранить";
+}
 }
 
 async function addHistory(){
 if(!currentId){await saveClient(); return;}
 const text = document.getElementById("historyText").value.trim();
 if(!text) return alert("Напиши комментарий в поле истории");
-
 await quickHistory(text);
 document.getElementById("historyText").value="";
 }
@@ -518,11 +422,7 @@ const now = new Date().toLocaleString("ru-RU");
 c.history = c.history || [];
 c.history.unshift({date:now,text});
 
-const { error } = await db
-.from("clients")
-.update({history:c.history})
-.eq("id", currentId);
-
+const { error } = await db.from("clients").update({history:c.history,updated_at:new Date().toISOString()}).eq("id", currentId);
 if(error){alert("Ошибка истории: " + error.message);return;}
 
 await loadClients();
@@ -535,9 +435,7 @@ box.innerHTML = "";
 if(!history.length){box.innerHTML="<small>Истории пока нет</small>";return;}
 
 history.forEach(h=>{
-box.innerHTML += `<div style="margin-bottom:10px;border-bottom:1px solid #334155;padding-bottom:8px">
-<small>${h.date}</small><br>${h.text}
-</div>`;
+box.innerHTML += `<div style="margin-bottom:10px;border-bottom:1px solid #334155;padding-bottom:8px"><small>${h.date}</small><br>${h.text}</div>`;
 });
 }
 
