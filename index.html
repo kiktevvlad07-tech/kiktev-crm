@@ -175,6 +175,28 @@ input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin
 </div>
 
 <script>
+  
+const CRM_PASSWORD = "2580";
+
+const enteredPassword = prompt("Введите пароль для входа в CRM");
+
+if (enteredPassword !== CRM_PASSWORD) {
+  document.body.innerHTML = `
+    <div style="
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      background:#0f172a;
+      color:white;
+      font-size:30px;
+      font-family:Arial;
+    ">
+      Доступ запрещён
+    </div>
+  `;
+  throw new Error("Wrong password");
+}
 const SUPABASE_URL = "https://ttbmhckceewudggcgvdp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_NvSnbdCRzJ8-yBwyDivZlA_8wahQP04";
 
