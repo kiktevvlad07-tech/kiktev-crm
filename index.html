@@ -1,482 +1,1099 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kiktev CRM</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kiktev CRM 1.5</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+:root{
+  --bg:#f4f9ff;
+  --bg2:#eaf4ff;
+  --card:#ffffff;
+  --text:#172033;
+  --muted:#64748b;
+  --line:#dbeafe;
+  --blue:#2478ff;
+  --blue2:#e8f2ff;
+  --green:#16a34a;
+  --red:#ef4444;
+  --orange:#f59e0b;
+  --purple:#7c3aed;
+  --shadow:0 12px 35px rgba(30,64,175,.10);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#0f172a;color:#fff}
-header{padding:18px;background:#111827;border-bottom:2px solid #d4af37}
-h1{color:#d4af37;font-size:26px}
-.wrapper{padding:16px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
-.stat{background:#1e293b;padding:16px;border-radius:14px;border:1px solid #334155}
-.stat b{font-size:24px;color:#d4af37}
-.attention{background:#1e293b;border:2px solid #ef4444;border-radius:16px;padding:14px;margin-bottom:16px}
-.attention h2{color:#ef4444;margin-bottom:10px}
-.attention-card{background:#111827;border-radius:12px;padding:10px;margin:8px 0;cursor:pointer}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-button{background:#d4af37;color:#000;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.6;cursor:not-allowed}
-input,select,textarea{width:100%;padding:11px;border-radius:10px;border:0;margin-top:6px;margin-bottom:10px}
-.search{max-width:420px}
-.board{display:flex;gap:14px;overflow-x:auto;padding-bottom:20px}
-.column{min-width:280px;background:#111827;border-radius:16px;padding:12px;border:1px solid #334155}
-.column h3{margin-bottom:12px;color:#d4af37}
-.card{background:#1e293b;border-radius:14px;padding:12px;margin-bottom:10px;border-left:5px solid #d4af37;cursor:pointer}
-.card small{color:#94a3b8}
-.tag{display:inline-block;background:#334155;border-radius:999px;padding:4px 8px;font-size:12px;margin-top:6px;margin-right:3px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
-.modal-box{background:#0f172a;border:2px solid #d4af37;border-radius:18px;max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:18px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.history{background:#111827;padding:12px;border-radius:12px;margin-top:10px}
-.danger{background:#7f1d1d;color:#fff}
-.gray{background:#334155;color:#fff}
-.quick{background:#14532d;color:#fff}
+body{
+  font-family:Inter,Arial,sans-serif;
+  background:linear-gradient(135deg,#f8fbff 0%,#eaf4ff 55%,#f7fbff 100%);
+  color:var(--text);
+  min-height:100vh;
+}
+button,input,select,textarea{font-family:inherit}
+button{
+  border:0;
+  border-radius:12px;
+  padding:11px 14px;
+  font-weight:700;
+  cursor:pointer;
+  background:var(--blue);
+  color:#fff;
+  box-shadow:0 8px 20px rgba(36,120,255,.18);
+}
+button:hover{filter:brightness(.98)}
+button:disabled{opacity:.65;cursor:not-allowed}
+input,select,textarea{
+  width:100%;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  color:var(--text);
+  margin-top:6px;
+  outline:none;
+}
+textarea{resize:vertical}
+label{font-size:13px;color:#334155;font-weight:700}
+.header{
+  position:sticky;top:0;z-index:5;
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  padding:14px 18px;
+}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.logo h1{font-size:24px;color:#0f2f5f;margin-bottom:2px}
+.logo div{font-size:13px;color:var(--muted)}
+.header-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{min-width:290px;max-width:460px}
+.wrapper{padding:18px}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:12px;
+  margin-bottom:14px;
+}
+.stat{
+  background:rgba(255,255,255,.92);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px;
+  box-shadow:var(--shadow);
+  cursor:pointer;
+}
+.stat-title{font-size:13px;color:var(--muted);margin-bottom:5px}
+.stat b{font-size:25px;color:#0f2f5f}
+.stat.red b{color:var(--red)}
+.stat.yellow b{color:var(--orange)}
+.stat.green b{color:var(--green)}
+.tasks{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:14px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+.tasks h2{font-size:18px;margin-bottom:10px}
+.task-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.task{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+  background:#f8fbff;
+  cursor:pointer;
+}
+.task b{display:block;margin-bottom:4px}
+.task small{color:var(--muted)}
+.board{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  padding:4px 0 24px;
+}
+.column{
+  min-width:292px;
+  max-width:292px;
+  background:rgba(255,255,255,.72);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:12px;
+  box-shadow:var(--shadow);
+}
+.column-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.column h3{font-size:15px;color:#0f2f5f}
+.count{
+  background:var(--blue2);
+  color:var(--blue);
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-weight:800;
+}
+.card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:10px;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(15,23,42,.06);
+  transition:.15s ease;
+}
+.card:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(15,23,42,.09)}
+.card-name{font-weight:800;margin-bottom:5px}
+.card-line{font-size:13px;color:#334155;margin:4px 0}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  border-radius:999px;
+  padding:4px 8px;
+  background:#f1f5f9;
+  color:#334155;
+  font-size:12px;
+  font-weight:700;
+}
+.tag.hot{background:#fee2e2;color:#b91c1c}
+.tag.warm{background:#fef3c7;color:#92400e}
+.tag.cold{background:#dbeafe;color:#1d4ed8}
+.tag.todo{background:#fff7ed;color:#c2410c}
+.tag.ok{background:#dcfce7;color:#166534}
+.tag.transfer{background:#ede9fe;color:#5b21b6}
+.highlight{
+  animation:blink 1s ease-in-out 3;
+  outline:3px solid var(--orange);
+}
+@keyframes blink{50%{transform:scale(1.03);background:#fff7ed}}
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:20;
+  display:none;
+  background:rgba(15,23,42,.38);
+  padding:16px;
+}
+.modal-box{
+  background:#fff;
+  max-width:1120px;
+  margin:0 auto;
+  border-radius:24px;
+  box-shadow:0 30px 80px rgba(15,23,42,.22);
+  max-height:94vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.modal-top{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  padding:14px 16px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.modal-title h2{font-size:22px}
+.modal-title small{color:var(--muted)}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap}
+.modal-body{
+  overflow:auto;
+  padding:16px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(220px,1fr));
+  gap:12px;
+}
+.full{grid-column:1/-1}
+.status-buttons,.check-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+.status-btn,.chip{
+  border:1px solid var(--line);
+  background:#f8fbff;
+  color:#334155;
+  box-shadow:none;
+  padding:9px 11px;
+  border-radius:999px;
+}
+.status-btn.active,.chip.active{
+  background:var(--blue);
+  color:#fff;
+  border-color:var(--blue);
+}
+.request-box{
+  background:linear-gradient(135deg,#e8f2ff,#f8fbff);
+  border:1px solid #bfdbfe;
+  border-radius:18px;
+  padding:14px;
+}
+.history-box{
+  background:#f8fbff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px;
+}
+.history-item{
+  padding:10px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+.history-item:last-child{border-bottom:0}
+.history-date{font-size:12px;color:var(--muted);margin-bottom:3px}
+.transfer-box{
+  background:#fbf7ff;
+  border:1px solid #ddd6fe;
+  border-radius:18px;
+  padding:14px;
+}
+.danger{background:#ef4444}
+.gray{background:#f1f5f9;color:#334155;box-shadow:none}
+.green{background:#16a34a}
+.purple{background:#7c3aed}
+.login-screen{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#eaf4ff,#ffffff);
+  padding:20px;
+}
+.login-card{
+  width:100%;max-width:390px;background:#fff;border:1px solid var(--line);
+  border-radius:24px;box-shadow:var(--shadow);padding:24px;
+}
+.login-card h1{font-size:28px;color:#0f2f5f;margin-bottom:5px}
+.login-card p{color:var(--muted);margin-bottom:16px}
+.login-error{color:var(--red);font-size:13px;margin-top:8px;display:none}
+.small-note{font-size:12px;color:var(--muted);margin-top:6px}
+@media(max-width:760px){
+  .grid{grid-template-columns:1fr}
+  .search{min-width:100%}
+  .modal{padding:0}
+  .modal-box{height:100vh;max-height:100vh;border-radius:0}
+  .column{min-width:270px}
+}
 </style>
 </head>
 
 <body>
 
-<header>
-<h1>🏠 Kiktev CRM</h1>
-<div>Личная CRM для клиентов по недвижимости</div>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <h1>🏠 Kiktev CRM</h1>
+    <p>Личная CRM для клиентов по недвижимости</p>
+    <label>Пароль</label>
+    <input type="password" id="loginPassword" placeholder="Введите пароль" onkeydown="if(event.key==='Enter')checkPassword()">
+    <button style="width:100%;margin-top:12px" onclick="checkPassword()">Войти</button>
+    <div class="login-error" id="loginError">Неверный пароль</div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-row">
+    <div class="logo">
+      <h1>🏠 Kiktev CRM</h1>
+      <div>Личная доска клиентов по недвижимости</div>
+    </div>
+    <div class="header-actions">
+      <input class="search" id="searchInput" placeholder="Поиск по имени или телефону" oninput="render()">
+      <button onclick="openNewClient()">+ Новый клиент</button>
+      <button class="gray" onclick="loadClients()">🔄 Обновить</button>
+    </div>
+  </div>
 </header>
 
 <div class="wrapper">
 
-<div class="stats">
-<div class="stat">🔴 Просрочено<br><b id="overdueCount">0</b></div>
-<div class="stat">🟡 Сегодня<br><b id="todayCount">0</b></div>
-<div class="stat">🟢 Завтра<br><b id="tomorrowCount">0</b></div>
-<div class="stat">👥 Всего клиентов<br><b id="totalCount">0</b></div>
-</div>
+  <div class="stats">
+    <div class="stat red" onclick="showTaskGroup('overdue')"><div class="stat-title">🔴 Просрочено</div><b id="overdueCount">0</b></div>
+    <div class="stat yellow" onclick="showTaskGroup('today')"><div class="stat-title">🟡 Сегодня</div><b id="todayCount">0</b></div>
+    <div class="stat green" onclick="showTaskGroup('tomorrow')"><div class="stat-title">🟢 Завтра</div><b id="tomorrowCount">0</b></div>
+    <div class="stat" onclick="showTransferList()"><div class="stat-title">🤝 Передано коллегам</div><b id="transferCount">0</b></div>
+    <div class="stat"><div class="stat-title">👥 Всего клиентов</div><b id="totalCount">0</b></div>
+  </div>
 
-<div class="attention">
-<h2>🔥 Требуют внимания</h2>
-<div id="attentionList"></div>
-</div>
+  <div class="tasks">
+    <h2 id="tasksTitle">🔥 Ближайшие задачи</h2>
+    <div class="task-list" id="taskList"></div>
+  </div>
 
-<div class="actions">
-<button onclick="openNewClient()">+ Новый клиент</button>
-<button class="gray" onclick="loadClients()">🔄 Обновить</button>
-<input class="search" id="searchInput" placeholder="Поиск по имени или телефону" oninput="render()">
-</div>
+  <div class="board" id="board"></div>
 
-<div class="board" id="board"></div>
 </div>
 
 <div class="modal" id="clientModal">
-<div class="modal-box">
-<h2 id="modalTitle">Новый клиент</h2>
+  <div class="modal-box">
+    <div class="modal-top">
+      <div class="modal-title">
+        <h2 id="modalTitle">Новый клиент</h2>
+        <small id="modalSub">Карточка клиента</small>
+      </div>
+      <div class="modal-actions">
+        <button id="saveBtn" onclick="saveClient()">Сохранить</button>
+        <button class="gray" onclick="closeModal()">Закрыть</button>
+        <button class="danger" onclick="deleteClient()">Удалить</button>
+      </div>
+    </div>
 
-<div class="actions" id="quickButtons"></div>
+    <div class="modal-body">
+      <div class="grid">
 
-<div class="grid">
-<div><label>Имя</label><input id="name"></div>
-<div><label>Телефон</label><input id="phone"></div>
+        <div class="full">
+          <label>Статус клиента</label>
+          <div class="status-buttons" id="statusButtons"></div>
+        </div>
 
-<div><label>Источник</label>
-<select id="source">
-<option>Звонок</option><option>Instagram</option><option>MAX</option>
-<option>Telegram</option><option>WhatsApp</option><option>Авито</option>
-<option>Сайт</option><option>Рекомендация</option><option>Реклама</option><option>Другое</option>
-</select></div>
+        <div><label>Имя</label><input id="name"></div>
+        <div><label>Телефон</label><input id="phone"></div>
 
-<div><label>Подробный источник</label><input id="sourceDetail"></div>
+        <div><label>Источник</label>
+          <select id="source">
+            <option>Звонок</option><option>Instagram</option><option>MAX</option>
+            <option>Telegram</option><option>WhatsApp</option><option>Авито</option>
+            <option>Сайт</option><option>Рекомендация</option><option>Реклама</option><option>Форма заявки</option><option>Другое</option>
+          </select>
+        </div>
 
-<div><label>Статус</label>
-<select id="status">
-<option>Новый лид</option><option>Связался</option><option>Подбор</option>
-<option>Отправлены варианты</option><option>Показ</option><option>Бронь</option>
-<option>Потерян</option><option>Архив сделок</option>
-</select></div>
+        <div><label>Подробный источник</label><input id="sourceDetail"></div>
 
-<div><label>Тип клиента</label>
-<select id="clientType">
-<option>Покупатель</option><option>Продавец</option><option>Инвестор</option><option>Агент</option>
-</select></div>
+        <div><label>Тип клиента</label>
+          <select id="clientType">
+            <option>Покупатель</option><option>Продавец</option><option>Инвестор</option><option>Агент</option>
+          </select>
+        </div>
 
-<div><label>Что ищет</label>
-<select id="requestType">
-<option>Новостройка</option><option>Вторичное жильё</option><option>Дом</option>
-<option>Дом от собственника</option><option>Коммерческое помещение</option>
-<option>Апартаменты</option><option>Земля</option><option>Продажа объекта</option>
-</select></div>
+        <div><label>Город</label>
+          <select id="city">
+            <option>Краснодар</option><option>Адыгея</option><option>Сочи</option>
+            <option>Анапа</option><option>Новороссийск</option><option>Горячий Ключ</option>
+            <option>Город не знает</option><option>Другое</option>
+          </select>
+        </div>
 
-<div><label>Город</label>
-<select id="city">
-<option>Краснодар</option><option>Адыгея</option><option>Сочи</option>
-<option>Анапа</option><option>Новороссийск</option><option>Горячий Ключ</option>
-<option>Город не знает</option><option>Другое</option>
-</select></div>
+        <div class="full">
+          <label>Что рассматривает</label>
+          <div class="check-grid" id="objectTypeChecks"></div>
+          <div class="small-note">Можно выбрать несколько вариантов</div>
+        </div>
 
-<div><label>Район</label>
-<select id="district">
-<option>Любимово</option><option>Западный обход</option><option>Губернский</option>
-<option>Энка</option><option>Молодёжный</option><option>Немецкая деревня</option>
-<option>Район не имеет значения</option><option>Не знает район</option><option>Другое</option>
-</select></div>
+        <div class="full">
+          <label>Районы</label>
+          <div class="check-grid" id="districtChecks"></div>
+          <div class="small-note">Можно выбрать несколько районов</div>
+        </div>
 
-<div><label>Бюджет до</label><input id="budget"></div>
-<div><label>Первый взнос</label><input id="firstPay"></div>
-<div><label>Комфортный платёж</label><input id="monthPay"></div>
+        <div><label>Бюджет до</label><input id="budget" placeholder="Например: до 8 млн"></div>
+        <div><label>Первый взнос</label><input id="firstPay" placeholder="Например: маткапитал или 1 млн"></div>
+        <div><label>Комфортный платёж</label><input id="monthPay" placeholder="Например: до 55 000 ₽"></div>
 
-<div><label>Условия покупки</label>
-<select id="dealType">
-<option>Семейная до 7 лет</option><option>Семейная 2 детей</option>
-<option>Маткапитал</option><option>IT ипотека</option><option>Военная ипотека</option>
-<option>Рассрочка</option><option>Наличные</option><option>Стандартная ипотека</option><option>Не знает</option>
-</select></div>
+        <div><label>Условия покупки</label>
+          <select id="dealType">
+            <option>Семейная до 7 лет</option>
+            <option>Семейная 2 детей</option>
+            <option>Ребёнок-инвалид до 18 лет</option>
+            <option>Маткапитал</option>
+            <option>IT ипотека</option>
+            <option>Военная ипотека</option>
+            <option>Рассрочка</option>
+            <option>Наличные</option>
+            <option>Стандартная ипотека</option>
+            <option>Не знает</option>
+          </select>
+        </div>
 
-<div><label>Метка</label>
-<select id="tag">
-<option>Горячий</option><option>Тёплый</option><option>Холодный</option>
-<option>Агент</option><option>Проблемный</option><option>Не работать</option><option>VIP</option>
-</select></div>
+        <div><label>Метка</label>
+          <select id="tag">
+            <option>Горячий</option><option>Тёплый</option><option>Холодный</option>
+            <option>Агент</option><option>Проблемный</option><option>Не работать</option><option>VIP</option>
+          </select>
+        </div>
 
-<div><label>Следующее действие</label>
-<select id="nextAction">
-<option>Перезвонить</option><option>Отправить подборку</option><option>Встреча</option>
-<option>Показ</option><option>Узнать решение</option><option>Другое</option>
-</select></div>
+        <div><label>Дата напоминания</label><input type="date" id="reminderDate"></div>
+        <div><label>Время напоминания</label><input type="time" id="reminderTime"></div>
 
-<div><label>Дата напоминания</label><input type="date" id="reminderDate"></div>
-</div>
+        <div class="full request-box">
+          <label>📋 Основной запрос клиента</label>
+          <textarea id="note" rows="5" placeholder="Что ищет клиент, важные параметры, районы, бюджет, ипотека..."></textarea>
+          <button class="purple" style="margin-top:8px" onclick="startVoiceInput()">🎤 Надиктовать</button>
+          <div class="small-note">Голосовой ввод работает в браузерах, где доступно распознавание речи.</div>
+        </div>
 
-<label>Причина следующего контакта</label>
-<input id="nextReason">
+        <div class="full">
+          <label>Новый комментарий в историю</label>
+          <textarea id="historyText" rows="3" placeholder="Например: отправил подборку, договорились на показ, клиент думает..."></textarea>
+          <div class="small-note">Если это поле заполнено, запись добавится в историю при нажатии «Сохранить».</div>
+        </div>
 
-<label>Быстрая заметка</label>
-<textarea id="note" rows="3"></textarea>
+        <div class="full transfer-box">
+          <label>🤝 Передача коллеге</label>
+          <div class="check-grid">
+            <button id="transferredBtn" class="chip" type="button" onclick="toggleTransferred()">Передан коллеге</button>
+          </div>
+          <div class="grid" style="margin-top:10px">
+            <div><label>Кому передан</label><input id="transferTo" placeholder="Имя коллеги"></div>
+            <div><label>Дата передачи</label><input type="date" id="transferDate"></div>
+            <div><label>Статус у коллеги</label>
+              <select id="transferStatus">
+                <option></option>
+                <option>В работе</option>
+                <option>Сделка</option>
+                <option>Не получилось</option>
+                <option>Ожидаю информацию</option>
+              </select>
+            </div>
+            <div><label>Мой процент / сумма</label><input id="transferIncome" placeholder="Например: 20% или 50 000 ₽"></div>
+            <div class="full"><label>Комментарий по передаче</label><textarea id="transferComment" rows="2"></textarea></div>
+            <div class="full">
+              <button id="transferPaidBtn" class="chip" type="button" onclick="toggleTransferPaid()">Выплата получена</button>
+            </div>
+          </div>
+        </div>
 
-<label>История / комментарий</label>
-<textarea id="historyText" rows="3"></textarea>
+        <div class="full history-box">
+          <h3>🕒 История</h3>
+          <div id="historyList"></div>
+        </div>
 
-<div class="actions">
-<button id="saveBtn" onclick="saveClient()">Сохранить</button>
-<button class="gray" onclick="addHistory()">+ Добавить историю</button>
-<button class="quick" onclick="quickHistory('Перезвонил клиенту')">📞 Перезвонил</button>
-<button class="quick" onclick="quickHistory('Отправил подборку')">📨 Отправил подборку</button>
-<button class="quick" onclick="quickHistory('Провёл показ')">🏠 Показ</button>
-<button class="danger" onclick="deleteClient()">Удалить</button>
-<button class="gray" onclick="closeModal()">Закрыть</button>
-</div>
-
-<div class="history">
-<h3>История клиента</h3>
-<div id="historyList"></div>
-</div>
-
-</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  
 const CRM_PASSWORD = "4815162342";
-
-const enteredPassword = prompt("Введите пароль для входа в CRM");
-
-if (enteredPassword !== CRM_PASSWORD) {
-  document.body.innerHTML = `
-    <div style="
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      background:#0f172a;
-      color:white;
-      font-size:30px;
-      font-family:Arial;
-    ">
-      Доступ запрещён
-    </div>
-  `;
-  throw new Error("Wrong password");
-}
 const SUPABASE_URL = "https://ttbmhckceewudggcgvdp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_NvSnbdCRzJ8-yBwyDivZlA_8wahQP04";
 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const statuses = ["Новый лид","Связался","Подбор","Отправлены варианты","Показ","Бронь","Потерян","Архив сделок"];
+let db = null;
 let clients = [];
 let currentId = null;
 let isSaving = false;
+let currentStatus = "Новый клиент";
+let transferredValue = false;
+let transferPaidValue = false;
+
+const statuses = [
+  "Входящие заявки",
+  "Новый клиент",
+  "Уточнение",
+  "В работе",
+  "Показы",
+  "Отложенный",
+  "Сделка",
+  "Отказ",
+  "Архив"
+];
+
+const oldStatusMap = {
+  "Новый лид":"Новый клиент",
+  "Связался":"Уточнение",
+  "Подбор":"В работе",
+  "Отправлены варианты":"В работе",
+  "Показ":"Показы",
+  "Бронь":"Сделка",
+  "Потерян":"Отказ",
+  "Архив сделок":"Архив"
+};
+
+const districtsList = [
+  "Восточный обход",
+  "Губернский",
+  "Западный обход",
+  "Комсомольский",
+  "Любимово",
+  "Молодёжный",
+  "Немецкая деревня",
+  "Новая Адыгея",
+  "Новознаменский",
+  "Панорама",
+  "Петра-Метальникова",
+  "п. Южный",
+  "Фестивальный",
+  "Центральный",
+  "Черёмушки",
+  "Энка",
+  "Район не имеет значения",
+  "Не знает район",
+  "Другое"
+];
+
+const objectTypesList = [
+  "Студия",
+  "1-комнатная",
+  "2-комнатная",
+  "3-комнатная",
+  "4-комнатная+",
+  "Дом",
+  "Таунхаус",
+  "Дуплекс",
+  "Земля",
+  "Коммерция",
+  "Апартаменты"
+];
+
+function checkPassword(){
+  const entered = document.getElementById("loginPassword").value;
+  if(entered === CRM_PASSWORD){
+    document.getElementById("loginScreen").style.display = "none";
+    initApp();
+  }else{
+    document.getElementById("loginError").style.display = "block";
+  }
+}
+
+function initApp(){
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  renderStaticControls();
+  loadClients();
+}
 
 function cleanPhone(phone){return (phone || "").replace(/\D/g,"");}
 
 function todayStr(offset=0){
-const d = new Date();
-d.setDate(d.getDate()+offset);
-return d.toISOString().split("T")[0];
+  const d = new Date();
+  d.setDate(d.getDate()+offset);
+  return d.toISOString().split("T")[0];
+}
+
+function nowText(){
+  return new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 }
 
 function formatDate(dateStr){
-if(!dateStr) return "нет даты";
-return dateStr.split("-").reverse().join(".");
+  if(!dateStr) return "";
+  return dateStr.split("-").reverse().join(".");
+}
+
+function getStatus(c){
+  if(c.is_incoming) return "Входящие заявки";
+  return oldStatusMap[c.status] || c.status || "Новый клиент";
+}
+
+function normalizeArray(value, fallback){
+  if(Array.isArray(value)) return value;
+  if(typeof value === "string" && value.trim()){
+    try{
+      const parsed = JSON.parse(value);
+      if(Array.isArray(parsed)) return parsed;
+    }catch(e){}
+    return [value];
+  }
+  return fallback ? [fallback] : [];
 }
 
 function mapFromDb(c){
-return {
-id:c.id,name:c.name,phone:c.phone,source:c.source,sourceDetail:c.source_detail,
-status:c.status,clientType:c.client_type,requestType:c.request_type,city:c.city,
-district:c.district,budget:c.budget,firstPay:c.first_pay,monthPay:c.month_pay,
-dealType:c.deal_type,tag:c.tag,nextAction:c.next_action,reminderDate:c.reminder_date,
-nextReason:c.next_reason,note:c.note,history:c.history || [],
-createdAt:c.created_at,updatedAt:c.updated_at
-};
+  const status = getStatus(c);
+  const districts = normalizeArray(c.districts, c.district);
+  const objectTypes = normalizeArray(c.object_types, "");
+  return {
+    id:c.id,
+    name:c.name || "",
+    phone:c.phone || "",
+    source:c.source || "Звонок",
+    sourceDetail:c.source_detail || "",
+    status,
+    clientType:c.client_type || "Покупатель",
+    city:c.city || "Краснодар",
+    districts,
+    district: districts.join(", "),
+    objectTypes,
+    budget:c.budget || "",
+    firstPay:c.first_pay || "",
+    monthPay:c.month_pay || "",
+    dealType:c.deal_type || "Семейная до 7 лет",
+    tag:c.tag || "Горячий",
+    reminderDate:c.reminder_date || "",
+    reminderTime:c.reminder_time || "",
+    note:c.note || "",
+    history:c.history || [],
+    transferred:!!c.transferred,
+    transferTo:c.transfer_to || "",
+    transferDate:c.transfer_date || "",
+    transferComment:c.transfer_comment || "",
+    transferStatus:c.transfer_status || "",
+    transferIncome:c.transfer_income || "",
+    transferPaid:!!c.transfer_paid,
+    isIncoming:!!c.is_incoming,
+    createdAt:c.created_at,
+    updatedAt:c.updated_at
+  };
 }
 
 function mapToDb(c){
-return {
-name:c.name,phone:c.phone,source:c.source,source_detail:c.sourceDetail,
-status:c.status,client_type:c.clientType,request_type:c.requestType,city:c.city,
-district:c.district,budget:c.budget,first_pay:c.firstPay,month_pay:c.monthPay,
-deal_type:c.dealType,tag:c.tag,next_action:c.nextAction,
-reminder_date:c.reminderDate || null,next_reason:c.nextReason,note:c.note,
-history:c.history || [],updated_at:new Date().toISOString()
-};
+  const isIncoming = c.status === "Входящие заявки";
+  return {
+    name:c.name,
+    phone:c.phone,
+    source:c.source,
+    source_detail:c.sourceDetail,
+    status:c.status,
+    client_type:c.clientType,
+    city:c.city,
+    district:(c.districts || []).join(", "),
+    districts:c.districts || [],
+    object_types:c.objectTypes || [],
+    budget:c.budget,
+    first_pay:c.firstPay,
+    month_pay:c.monthPay,
+    deal_type:c.dealType,
+    tag:c.tag,
+    reminder_date:c.reminderDate || null,
+    reminder_time:c.reminderTime || null,
+    note:c.note,
+    history:c.history || [],
+    transferred:!!c.transferred,
+    transfer_to:c.transferTo,
+    transfer_date:c.transferDate || null,
+    transfer_comment:c.transferComment,
+    transfer_status:c.transferStatus,
+    transfer_income:c.transferIncome,
+    transfer_paid:!!c.transferPaid,
+    is_incoming:isIncoming,
+    updated_at:new Date().toISOString()
+  };
 }
 
 async function loadClients(){
-const { data, error } = await db.from("clients").select("*").order("created_at",{ascending:false});
-if(error){alert("Ошибка загрузки из Supabase: " + error.message);return;}
-clients = data.map(mapFromDb);
-render();
+  const { data, error } = await db.from("clients").select("*").order("created_at",{ascending:false});
+  if(error){
+    alert("Ошибка загрузки из Supabase: " + error.message);
+    return;
+  }
+  clients = (data || []).map(mapFromDb);
+  render();
 }
 
 function render(){
-const board = document.getElementById("board");
-const q = document.getElementById("searchInput").value.toLowerCase();
-board.innerHTML = "";
+  renderBoard();
+  updateStats();
+  renderTasks(getDefaultTasks(), "🔥 Ближайшие задачи");
+}
 
-statuses.forEach(st=>{
-const col = document.createElement("div");
-col.className = "column";
-col.innerHTML = `<h3>${st}</h3>`;
+function renderBoard(){
+  const board = document.getElementById("board");
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  board.innerHTML = "";
 
-clients.filter(c=>c.status===st)
-.filter(c=>(String(c.name)+String(c.phone)).toLowerCase().includes(q))
-.forEach(c=>{
-const card = document.createElement("div");
-card.className = "card";
-card.onclick = ()=>openClient(c.id);
-card.innerHTML = `
-<b>${c.name || "Без имени"}</b><br>
-<small>📞 ${c.phone || ""}</small><br>
-🏠 ${c.requestType || ""}<br>
-📍 ${c.district || ""}<br>
-💰 ${c.budget || ""}<br>
-<small>📅 ${c.nextAction || ""}: ${formatDate(c.reminderDate)}</small><br>
-${c.nextReason ? `<small>📝 ${c.nextReason}</small><br>` : ""}
-<span class="tag">${c.tag || ""}</span>
-<span class="tag">${c.source || ""}</span>`;
-col.appendChild(card);
-});
-board.appendChild(col);
-});
+  statuses.forEach(status=>{
+    const filtered = clients
+      .filter(c=>c.status===status)
+      .filter(c=>(String(c.name)+String(c.phone)+String(c.district)+String(c.note)).toLowerCase().includes(q))
+      .sort(compareByReminder);
 
-updateStats();
-renderAttention();
+    const col = document.createElement("div");
+    col.className = "column";
+    col.innerHTML = `
+      <div class="column-header">
+        <h3>${status}</h3>
+        <span class="count">${filtered.length}</span>
+      </div>
+    `;
+
+    filtered.forEach(c=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      card.id = "client-card-" + c.id;
+      card.onclick = ()=>openClient(c.id);
+      card.innerHTML = `
+        <div class="card-name">${c.name || "Без имени"}</div>
+        <div class="card-line">📞 ${c.phone || "телефон не указан"}</div>
+        ${c.objectTypes?.length ? `<div class="card-line">🏠 ${c.objectTypes.join(", ")}</div>` : ""}
+        ${c.districts?.length ? `<div class="card-line">📍 ${c.districts.slice(0,3).join(", ")}${c.districts.length>3 ? "..." : ""}</div>` : ""}
+        ${c.budget ? `<div class="card-line">💰 ${c.budget}</div>` : ""}
+        ${renderReminderLine(c)}
+        <div class="tags">
+          <span class="tag ${tagClass(c.tag)}">${c.tag || ""}</span>
+          ${c.source ? `<span class="tag">${c.source}</span>` : ""}
+          ${c.transferred ? `<span class="tag transfer">🤝 Передан</span>` : ""}
+        </div>
+      `;
+      col.appendChild(card);
+    });
+
+    board.appendChild(col);
+  });
+}
+
+function compareByReminder(a,b){
+  const av = reminderValue(a);
+  const bv = reminderValue(b);
+  if(av === bv) return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+  return av - bv;
+}
+
+function reminderValue(c){
+  if(!c.reminderDate) return 9999999999999;
+  return new Date(`${c.reminderDate}T${c.reminderTime || "23:59"}`).getTime();
+}
+
+function renderReminderLine(c){
+  if(!c.reminderDate) return "";
+  const time = c.reminderTime ? ` ${c.reminderTime}` : "";
+  const today = todayStr(0);
+  let label = "⏰";
+  if(c.reminderDate < today) label = "🔴 Просрочено:";
+  else if(c.reminderDate === today) label = "🟡 Сегодня:";
+  else if(c.reminderDate === todayStr(1)) label = "🟢 Завтра:";
+  return `<div class="card-line">${label} ${formatDate(c.reminderDate)}${time}</div>`;
+}
+
+function tagClass(tag){
+  if(tag==="Горячий") return "hot";
+  if(tag==="Тёплый") return "warm";
+  if(tag==="Холодный") return "cold";
+  return "";
 }
 
 function updateStats(){
-const today = todayStr(0);
-const tomorrow = todayStr(1);
-document.getElementById("totalCount").innerText = clients.length;
-document.getElementById("todayCount").innerText = clients.filter(c=>c.reminderDate===today && c.status!=="Архив сделок").length;
-document.getElementById("tomorrowCount").innerText = clients.filter(c=>c.reminderDate===tomorrow && c.status!=="Архив сделок").length;
-document.getElementById("overdueCount").innerText = clients.filter(c=>c.reminderDate && c.reminderDate<today && c.status!=="Архив сделок" && c.status!=="Потерян").length;
+  const today = todayStr(0);
+  const tomorrow = todayStr(1);
+  const active = c => !["Архив","Отказ","Сделка"].includes(c.status);
+  document.getElementById("totalCount").innerText = clients.length;
+  document.getElementById("todayCount").innerText = clients.filter(c=>active(c) && c.reminderDate===today).length;
+  document.getElementById("tomorrowCount").innerText = clients.filter(c=>active(c) && c.reminderDate===tomorrow).length;
+  document.getElementById("overdueCount").innerText = clients.filter(c=>active(c) && c.reminderDate && c.reminderDate<today).length;
+  document.getElementById("transferCount").innerText = clients.filter(c=>c.transferred).length;
 }
 
-function renderAttention(){
-const list = document.getElementById("attentionList");
-const today = todayStr(0);
-const items = clients.filter(c=>c.reminderDate && c.reminderDate<=today && c.status!=="Архив сделок" && c.status!=="Потерян");
+function getDefaultTasks(){
+  const today = todayStr(0);
+  const tomorrow = todayStr(1);
+  return clients
+    .filter(c=>c.reminderDate && c.reminderDate<=tomorrow && !["Архив","Отказ","Сделка"].includes(c.status))
+    .sort(compareByReminder)
+    .slice(0,8);
+}
 
-if(!items.length){list.innerHTML = "<small>Сейчас срочных задач нет</small>";return;}
+function renderTasks(items, title){
+  document.getElementById("tasksTitle").innerText = title;
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+  if(!items.length){
+    list.innerHTML = `<div class="small-note">Задач нет</div>`;
+    return;
+  }
+  items.forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "task";
+    div.onclick = ()=>scrollToClient(c.id);
+    div.innerHTML = `
+      <b>${c.name || "Без имени"}</b>
+      <small>${c.status} • ${formatDate(c.reminderDate)} ${c.reminderTime || ""}</small><br>
+      <small>${c.phone || ""}</small>
+    `;
+    list.appendChild(div);
+  });
+}
 
-list.innerHTML = "";
-items.forEach(c=>{
-const div = document.createElement("div");
-div.className = "attention-card";
-div.onclick = ()=>openClient(c.id);
-div.innerHTML = `<b>${c.name || "Без имени"}</b><br>📞 ${c.phone || ""}<br>⚠ ${c.nextAction || "Действие"} — ${formatDate(c.reminderDate)}<br>${c.nextReason ? `📝 ${c.nextReason}` : ""}`;
-list.appendChild(div);
-});
+function showTaskGroup(type){
+  const today = todayStr(0);
+  const tomorrow = todayStr(1);
+  let items = [];
+  let title = "Задачи";
+
+  if(type==="overdue"){
+    title = "🔴 Просроченные клиенты";
+    items = clients.filter(c=>c.reminderDate && c.reminderDate<today);
+  }
+  if(type==="today"){
+    title = "🟡 Клиенты на сегодня";
+    items = clients.filter(c=>c.reminderDate===today);
+  }
+  if(type==="tomorrow"){
+    title = "🟢 Клиенты на завтра";
+    items = clients.filter(c=>c.reminderDate===tomorrow);
+  }
+  renderTasks(items.sort(compareByReminder), title);
+}
+
+function showTransferList(){
+  renderTasks(clients.filter(c=>c.transferred), "🤝 Переданные коллегам");
+}
+
+function scrollToClient(id){
+  const el = document.getElementById("client-card-" + id);
+  if(!el){openClient(id);return;}
+  el.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
+  el.classList.remove("highlight");
+  setTimeout(()=>el.classList.add("highlight"),50);
+}
+
+function renderStaticControls(){
+  renderStatusButtons();
+  renderChecks("districtChecks", districtsList, []);
+  renderChecks("objectTypeChecks", objectTypesList, []);
+}
+
+function renderStatusButtons(){
+  const box = document.getElementById("statusButtons");
+  box.innerHTML = "";
+  statuses.forEach(s=>{
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "status-btn" + (s===currentStatus ? " active" : "");
+    btn.innerText = s;
+    btn.onclick = ()=>{
+      currentStatus = s;
+      renderStatusButtons();
+    };
+    box.appendChild(btn);
+  });
+}
+
+function renderChecks(containerId, list, selected){
+  const box = document.getElementById(containerId);
+  box.innerHTML = "";
+  list.forEach(item=>{
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip" + (selected.includes(item) ? " active" : "");
+    btn.innerText = item;
+    btn.onclick = ()=>{
+      const active = btn.classList.toggle("active");
+    };
+    box.appendChild(btn);
+  });
+}
+
+function getSelectedChecks(containerId){
+  return Array.from(document.querySelectorAll(`#${containerId} .chip.active`)).map(b=>b.innerText);
+}
+
+function setSelectedChecks(containerId, selected){
+  document.querySelectorAll(`#${containerId} .chip`).forEach(btn=>{
+    btn.classList.toggle("active", selected.includes(btn.innerText));
+  });
 }
 
 function openNewClient(){
-currentId = null;
-document.getElementById("modalTitle").innerText = "Новый клиент";
-clearForm();
-document.getElementById("clientModal").style.display = "flex";
-renderHistory([]);
-renderQuickButtons("");
+  currentId = null;
+  currentStatus = "Новый клиент";
+  document.getElementById("modalTitle").innerText = "Новый клиент";
+  document.getElementById("modalSub").innerText = "Создание карточки";
+  clearForm();
+  renderStatusButtons();
+  renderHistory([]);
+  document.getElementById("clientModal").style.display = "block";
 }
 
 function openClient(id){
-currentId = id;
-const c = clients.find(x=>x.id===id);
-document.getElementById("modalTitle").innerText = c.name || "Клиент";
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  currentId = id;
+  currentStatus = c.status || "Новый клиент";
+  transferredValue = !!c.transferred;
+  transferPaidValue = !!c.transferPaid;
 
-["name","phone","source","sourceDetail","status","clientType","requestType","city","district","budget","firstPay","monthPay","dealType","tag","nextAction","reminderDate","nextReason","note"].forEach(id=>{
-document.getElementById(id).value = c[id] || "";
-});
+  document.getElementById("modalTitle").innerText = c.name || "Клиент";
+  document.getElementById("modalSub").innerText = c.phone || "Карточка клиента";
 
-document.getElementById("historyText").value = "";
-renderHistory(c.history || []);
-renderQuickButtons(c.phone || "");
-document.getElementById("clientModal").style.display = "flex";
-}
+  ["name","phone","source","sourceDetail","clientType","city","budget","firstPay","monthPay","dealType","tag","reminderDate","reminderTime","note","transferTo","transferDate","transferStatus","transferIncome","transferComment"].forEach(id=>{
+    document.getElementById(id).value = c[id] || "";
+  });
 
-function renderQuickButtons(phone){
-const box = document.getElementById("quickButtons");
-const p = cleanPhone(phone);
-if(!p){box.innerHTML="";return;}
-box.innerHTML = `<a href="tel:+${p}"><button>📞 Позвонить</button></a><a href="https://wa.me/${p}" target="_blank"><button>💬 WhatsApp</button></a>`;
+  setSelectedChecks("districtChecks", c.districts || []);
+  setSelectedChecks("objectTypeChecks", c.objectTypes || []);
+  document.getElementById("historyText").value = "";
+  renderStatusButtons();
+  updateTransferButtons();
+  renderHistory(c.history || []);
+  document.getElementById("clientModal").style.display = "block";
 }
 
 function clearForm(){
-["name","phone","sourceDetail","budget","firstPay","monthPay","reminderDate","nextReason","note","historyText"].forEach(id=>document.getElementById(id).value="");
-document.getElementById("status").value="Новый лид";
-document.getElementById("source").value="Звонок";
-document.getElementById("clientType").value="Покупатель";
-document.getElementById("requestType").value="Новостройка";
-document.getElementById("city").value="Краснодар";
-document.getElementById("district").value="Любимово";
-document.getElementById("dealType").value="Семейная до 7 лет";
-document.getElementById("tag").value="Горячий";
-document.getElementById("nextAction").value="Перезвонить";
+  ["name","phone","sourceDetail","budget","firstPay","monthPay","reminderDate","reminderTime","note","historyText","transferTo","transferDate","transferIncome","transferComment"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("source").value="Звонок";
+  document.getElementById("clientType").value="Покупатель";
+  document.getElementById("city").value="Краснодар";
+  document.getElementById("dealType").value="Семейная до 7 лет";
+  document.getElementById("tag").value="Горячий";
+  document.getElementById("transferStatus").value="";
+  currentStatus = "Новый клиент";
+  transferredValue = false;
+  transferPaidValue = false;
+  setSelectedChecks("districtChecks", []);
+  setSelectedChecks("objectTypeChecks", []);
+  updateTransferButtons();
 }
 
 function collectForm(){
-const obj = {};
-["name","phone","source","sourceDetail","status","clientType","requestType","city","district","budget","firstPay","monthPay","dealType","tag","nextAction","reminderDate","nextReason","note"].forEach(id=>{
-obj[id]=document.getElementById(id).value;
-});
-return obj;
+  return {
+    name:document.getElementById("name").value.trim(),
+    phone:document.getElementById("phone").value.trim(),
+    source:document.getElementById("source").value,
+    sourceDetail:document.getElementById("sourceDetail").value.trim(),
+    status:currentStatus,
+    clientType:document.getElementById("clientType").value,
+    city:document.getElementById("city").value,
+    districts:getSelectedChecks("districtChecks"),
+    objectTypes:getSelectedChecks("objectTypeChecks"),
+    budget:document.getElementById("budget").value.trim(),
+    firstPay:document.getElementById("firstPay").value.trim(),
+    monthPay:document.getElementById("monthPay").value.trim(),
+    dealType:document.getElementById("dealType").value,
+    tag:document.getElementById("tag").value,
+    reminderDate:document.getElementById("reminderDate").value,
+    reminderTime:document.getElementById("reminderTime").value,
+    note:document.getElementById("note").value.trim(),
+    transferred:transferredValue,
+    transferTo:document.getElementById("transferTo").value.trim(),
+    transferDate:document.getElementById("transferDate").value,
+    transferStatus:document.getElementById("transferStatus").value,
+    transferIncome:document.getElementById("transferIncome").value.trim(),
+    transferComment:document.getElementById("transferComment").value.trim(),
+    transferPaid:transferPaidValue
+  };
 }
 
 async function saveClient(){
-if(isSaving) return;
+  if(isSaving) return;
+  const btn = document.getElementById("saveBtn");
+  isSaving = true;
+  btn.disabled = true;
+  btn.innerText = "Сохраняю...";
 
-const btn = document.getElementById("saveBtn");
-isSaving = true;
-btn.disabled = true;
-btn.innerText = "Сохраняю...";
+  try{
+    const data = collectForm();
+    const phone = cleanPhone(data.phone);
 
-try{
-const data = collectForm();
-const now = new Date().toLocaleString("ru-RU");
-const phone = cleanPhone(data.phone);
+    if(!data.name && !data.phone){
+      alert("Заполни хотя бы имя или телефон");
+      return;
+    }
 
-if(!data.name && !data.phone){
-alert("Заполни хотя бы имя или телефон");
-return;
-}
+    if(!currentId && phone){
+      const duplicate = clients.find(c=>cleanPhone(c.phone)===phone && c.status!=="Архив" && c.status!=="Отказ");
+      if(duplicate){
+        if(confirm(`Клиент с таким номером уже есть:\n\n${duplicate.name}\n${duplicate.phone}\n\nОткрыть карточку?`)){
+          openClient(duplicate.id);
+        }
+        return;
+      }
+    }
 
-if(!currentId && phone){
-const activeDuplicate = clients.find(c=>cleanPhone(c.phone)===phone && c.status!=="Архив сделок");
-if(activeDuplicate){
-if(confirm(`Клиент с таким номером уже есть:\n\n${activeDuplicate.name}\n${activeDuplicate.phone}\n\nОткрыть карточку?`)){
-openClient(activeDuplicate.id);
-}
-return;
-}
-}
+    const comment = document.getElementById("historyText").value.trim();
 
-if(currentId){
-const old = clients.find(x=>x.id===currentId);
-data.history = old.history || [];
+    if(currentId){
+      const old = clients.find(x=>x.id===currentId);
+      data.history = [...(old.history || [])];
 
-if(old.status !== data.status){
-data.history.unshift({date:now,text:`Статус изменён: ${old.status} → ${data.status}`});
-}
+      if(old.status !== data.status){
+        data.history.unshift({date:nowText(),text:`Статус: ${old.status} → ${data.status}`});
+      }
 
-data.history.unshift({date:now,text:"Карточка обновлена"});
+      if(comment){
+        data.history.unshift({date:nowText(),text:comment});
+      }
 
-const { error } = await db.from("clients").update(mapToDb(data)).eq("id", currentId);
-if(error) throw error;
+      const { error } = await db.from("clients").update(mapToDb(data)).eq("id", currentId);
+      if(error) throw error;
 
-}else{
-data.history = [{date:now,text:"Клиент создан"}];
+      const idx = clients.findIndex(c=>c.id===currentId);
+      clients[idx] = {...old,...data,updatedAt:new Date().toISOString()};
+    }else{
+      data.history = [{date:nowText(),text:"Клиент создан"}];
+      if(comment){
+        data.history.unshift({date:nowText(),text:comment});
+      }
+      const { data: inserted, error } = await db.from("clients").insert(mapToDb(data)).select().single();
+      if(error) throw error;
+      currentId = inserted.id;
+      clients.unshift(mapFromDb(inserted));
+    }
 
-const firstHistory = document.getElementById("historyText").value.trim();
-if(firstHistory){
-data.history.unshift({date:now,text:firstHistory});
-}
+    document.getElementById("historyText").value = "";
+    btn.innerText = "✓ Сохранено";
+    render();
+    openClient(currentId);
+    setTimeout(()=>btn.innerText = "Сохранить", 1100);
 
-const { data: inserted, error } = await db.from("clients").insert(mapToDb(data)).select().single();
-if(error) throw error;
-currentId = inserted.id;
-}
-
-await loadClients();
-openClient(currentId);
-
-}catch(error){
-alert("Ошибка сохранения: " + error.message);
-}finally{
-isSaving = false;
-btn.disabled = false;
-btn.innerText = "Сохранить";
-}
-}
-
-async function addHistory(){
-if(!currentId){await saveClient(); return;}
-const text = document.getElementById("historyText").value.trim();
-if(!text) return alert("Напиши комментарий в поле истории");
-await quickHistory(text);
-document.getElementById("historyText").value="";
-}
-
-async function quickHistory(text){
-if(!currentId){alert("Сначала сохрани клиента"); return;}
-
-const c = clients.find(x=>x.id===currentId);
-const now = new Date().toLocaleString("ru-RU");
-c.history = c.history || [];
-c.history.unshift({date:now,text});
-
-const { error } = await db.from("clients").update({history:c.history,updated_at:new Date().toISOString()}).eq("id", currentId);
-if(error){alert("Ошибка истории: " + error.message);return;}
-
-await loadClients();
-openClient(currentId);
-}
-
-function renderHistory(history){
-const box = document.getElementById("historyList");
-box.innerHTML = "";
-if(!history.length){box.innerHTML="<small>Истории пока нет</small>";return;}
-
-history.forEach(h=>{
-box.innerHTML += `<div style="margin-bottom:10px;border-bottom:1px solid #334155;padding-bottom:8px"><small>${h.date}</small><br>${h.text}</div>`;
-});
+  }catch(error){
+    alert("Ошибка сохранения: " + error.message);
+  }finally{
+    isSaving = false;
+    btn.disabled = false;
+  }
 }
 
 async function deleteClient(){
-if(!currentId) return closeModal();
-if(!confirm("Удалить клиента?")) return;
+  if(!currentId) return closeModal();
+  if(!confirm("Удалить клиента?")) return;
 
-const { error } = await db.from("clients").delete().eq("id", currentId);
-if(error){alert("Ошибка удаления: " + error.message);return;}
-
-closeModal();
-await loadClients();
+  const { error } = await db.from("clients").delete().eq("id", currentId);
+  if(error){
+    alert("Ошибка удаления: " + error.message);
+    return;
+  }
+  clients = clients.filter(c=>c.id!==currentId);
+  closeModal();
+  render();
 }
 
 function closeModal(){
-document.getElementById("clientModal").style.display = "none";
+  document.getElementById("clientModal").style.display = "none";
 }
 
-loadClients();
+function toggleTransferred(){
+  transferredValue = !transferredValue;
+  updateTransferButtons();
+}
+
+function toggleTransferPaid(){
+  transferPaidValue = !transferPaidValue;
+  updateTransferButtons();
+}
+
+function updateTransferButtons(){
+  document.getElementById("transferredBtn").classList.toggle("active", transferredValue);
+  document.getElementById("transferPaidBtn").classList.toggle("active", transferPaidValue);
+}
+
+function renderHistory(history){
+  const box = document.getElementById("historyList");
+  box.innerHTML = "";
+  if(!history.length){
+    box.innerHTML="<div class='small-note'>Истории пока нет</div>";
+    return;
+  }
+  history.forEach(h=>{
+    box.innerHTML += `
+      <div class="history-item">
+        <div class="history-date">${h.date || ""}</div>
+        <div>${h.text || ""}</div>
+      </div>
+    `;
+  });
+}
+
+function startVoiceInput(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    alert("Голосовой ввод не поддерживается в этом браузере. Попробуй Chrome на телефоне.");
+    return;
+  }
+  const recognition = new SpeechRecognition();
+  recognition.lang = "ru-RU";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = (event)=>{
+    const text = event.results[0][0].transcript;
+    const note = document.getElementById("note");
+    note.value = (note.value ? note.value + "\n" : "") + text;
+  };
+  recognition.onerror = ()=>alert("Не получилось распознать голос. Попробуй ещё раз.");
+  recognition.start();
+}
 </script>
 
 </body>
