@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kiktev CRM 1.5</title>
+<title>Kiktev CRM 1.5.1</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -86,6 +86,42 @@ label{font-size:13px;color:#334155;font-weight:700}
 .stat.red b{color:var(--red)}
 .stat.yellow b{color:var(--orange)}
 .stat.green b{color:var(--green)}
+
+.analytics{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+  margin-bottom:16px;
+}
+.analytics-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+.analytics-card h3{font-size:17px;margin-bottom:10px;color:#0f2f5f}
+.analytics-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+}
+.metric{
+  background:#f8fbff;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:10px;
+}
+.metric small{color:var(--muted);display:block;margin-bottom:3px}
+.metric b{font-size:18px}
+.delete-zone{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #e2e8f0;
+  text-align:right;
+}
+.transfer-box.compact .grid{grid-template-columns:repeat(3,minmax(160px,1fr))}
+
 .tasks{
   background:#fff;
   border:1px solid var(--line);
@@ -278,6 +314,7 @@ label{font-size:13px;color:#334155;font-weight:700}
 .small-note{font-size:12px;color:var(--muted);margin-top:6px}
 @media(max-width:760px){
   .grid{grid-template-columns:1fr}
+  .transfer-box.compact .grid{grid-template-columns:1fr}
   .search{min-width:100%}
   .modal{padding:0}
   .modal-box{height:100vh;max-height:100vh;border-radius:0}
@@ -302,11 +339,11 @@ label{font-size:13px;color:#334155;font-weight:700}
 <header class="header">
   <div class="header-row">
     <div class="logo">
-      <h1>🏠 Kiktev CRM</h1>
+      <h1>🏠 Kiktev CRM 1.5.1</h1>
       <div>Личная доска клиентов по недвижимости</div>
     </div>
     <div class="header-actions">
-      <input class="search" id="searchInput" placeholder="Поиск по имени или телефону" oninput="render()">
+      <input class="search" id="searchInput" placeholder="Поиск: имя, фамилия или телефон" oninput="render()">
       <button onclick="openNewClient()">+ Новый клиент</button>
       <button class="gray" onclick="loadClients()">🔄 Обновить</button>
     </div>
@@ -319,8 +356,34 @@ label{font-size:13px;color:#334155;font-weight:700}
     <div class="stat red" onclick="showTaskGroup('overdue')"><div class="stat-title">🔴 Просрочено</div><b id="overdueCount">0</b></div>
     <div class="stat yellow" onclick="showTaskGroup('today')"><div class="stat-title">🟡 Сегодня</div><b id="todayCount">0</b></div>
     <div class="stat green" onclick="showTaskGroup('tomorrow')"><div class="stat-title">🟢 Завтра</div><b id="tomorrowCount">0</b></div>
-    <div class="stat" onclick="showTransferList()"><div class="stat-title">🤝 Передано коллегам</div><b id="transferCount">0</b></div>
     <div class="stat"><div class="stat-title">👥 Всего клиентов</div><b id="totalCount">0</b></div>
+    <div class="stat"><div class="stat-title">📈 Конверсия</div><b id="conversionRate">0%</b></div>
+  </div>
+
+  <div class="analytics">
+    <div class="analytics-card">
+      <h3>📊 Основная аналитика</h3>
+      <div class="analytics-grid">
+        <div class="metric"><small>Сегодня добавлено</small><b id="addedToday">0</b></div>
+        <div class="metric"><small>За неделю</small><b id="addedWeek">0</b></div>
+        <div class="metric"><small>За месяц</small><b id="addedMonth">0</b></div>
+        <div class="metric"><small>Сделки</small><b id="dealsCount">0</b></div>
+        <div class="metric"><small>Отказы</small><b id="lostCount">0</b></div>
+        <div class="metric"><small>Архив</small><b id="archiveCount">0</b></div>
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <h3>🤝 Переданные</h3>
+      <div class="analytics-grid">
+        <div class="metric"><small>Всего передано</small><b id="transferTotal">0</b></div>
+        <div class="metric"><small>В работе</small><b id="transferWork">0</b></div>
+        <div class="metric"><small>Сделка</small><b id="transferDeal">0</b></div>
+        <div class="metric"><small>Отказ</small><b id="transferLost">0</b></div>
+        <div class="metric"><small>Конверсия</small><b id="transferConversion">0%</b></div>
+        <div class="metric"><small>Комиссия</small><b id="transferMoney">0 ₽</b></div>
+      </div>
+    </div>
   </div>
 
   <div class="tasks">
@@ -342,7 +405,6 @@ label{font-size:13px;color:#334155;font-weight:700}
       <div class="modal-actions">
         <button id="saveBtn" onclick="saveClient()">Сохранить</button>
         <button class="gray" onclick="closeModal()">Закрыть</button>
-        <button class="danger" onclick="deleteClient()">Удалить</button>
       </div>
     </div>
 
@@ -434,36 +496,39 @@ label{font-size:13px;color:#334155;font-weight:700}
           <textarea id="historyText" rows="3" placeholder="Например: отправил подборку, договорились на показ, клиент думает..."></textarea>
           <div class="small-note">Если это поле заполнено, запись добавится в историю при нажатии «Сохранить».</div>
         </div>
+        <div class="full history-box">
+          <h3>🕒 История</h3>
+          <div id="historyList"></div>
+        </div>
 
-        <div class="full transfer-box">
+        <div class="full transfer-box compact">
           <label>🤝 Передача коллеге</label>
           <div class="check-grid">
             <button id="transferredBtn" class="chip" type="button" onclick="toggleTransferred()">Передан коллеге</button>
+            <button id="transferPaidBtn" class="chip" type="button" onclick="toggleTransferPaid()">Выплата получена</button>
           </div>
           <div class="grid" style="margin-top:10px">
             <div><label>Кому передан</label><input id="transferTo" placeholder="Имя коллеги"></div>
             <div><label>Дата передачи</label><input type="date" id="transferDate"></div>
             <div><label>Статус у коллеги</label>
               <select id="transferStatus">
-                <option></option>
                 <option>В работе</option>
                 <option>Сделка</option>
-                <option>Не получилось</option>
+                <option>Отказ</option>
                 <option>Ожидаю информацию</option>
               </select>
             </div>
-            <div><label>Мой процент / сумма</label><input id="transferIncome" placeholder="Например: 20% или 50 000 ₽"></div>
-            <div class="full"><label>Комментарий по передаче</label><textarea id="transferComment" rows="2"></textarea></div>
-            <div class="full">
-              <button id="transferPaidBtn" class="chip" type="button" onclick="toggleTransferPaid()">Выплата получена</button>
-            </div>
+            <div><label>Комиссия %</label><input id="transferPercent" placeholder="Например: 20%"></div>
+            <div><label>Комиссия ₽</label><input id="transferIncome" placeholder="Например: 50000"></div>
+            <div><label>Комментарий</label><input id="transferComment" placeholder="Коротко"></div>
           </div>
+          <div class="small-note">Если включить «Передан коллеге», клиент будет отображаться только в столбце «Переданные».</div>
         </div>
 
-        <div class="full history-box">
-          <h3>🕒 История</h3>
-          <div id="historyList"></div>
+        <div class="full delete-zone">
+          <button class="danger" onclick="deleteClient()">Удалить клиента</button>
         </div>
+
 
       </div>
     </div>
@@ -473,7 +538,7 @@ label{font-size:13px;color:#334155;font-weight:700}
 <script>
 const CRM_PASSWORD = "4815162342";
 const SUPABASE_URL = "https://ttbmhckceewudggcgvdp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_NvSnbdCRzJ8-yBwyDivZlA_8wahQP04";
+const SUPABASE_KEY = "sb_publishable_8kQ9MCqRNyjTqPAsw7CLfQ_AbUJceCm";
 
 let db = null;
 let clients = [];
@@ -484,24 +549,26 @@ let transferredValue = false;
 let transferPaidValue = false;
 
 const statuses = [
-  "Входящие заявки",
   "Новый клиент",
-  "Уточнение",
   "В работе",
-  "Показы",
+  "Бронь / задаток",
   "Отложенный",
+  "Переданные",
   "Сделка",
   "Отказ",
   "Архив"
 ];
 
 const oldStatusMap = {
+  "Входящие заявки":"Новый клиент",
   "Новый лид":"Новый клиент",
-  "Связался":"Уточнение",
+  "Связался":"В работе",
+  "Уточнение":"В работе",
   "Подбор":"В работе",
   "Отправлены варианты":"В работе",
-  "Показ":"Показы",
-  "Бронь":"Сделка",
+  "Показ":"Бронь / задаток",
+  "Показы":"Бронь / задаток",
+  "Бронь":"Бронь / задаток",
   "Потерян":"Отказ",
   "Архив сделок":"Архив"
 };
@@ -555,10 +622,43 @@ function checkPassword(){
 function initApp(){
   db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   renderStaticControls();
+  setupPhoneFormatting();
   loadClients();
 }
 
 function cleanPhone(phone){return (phone || "").replace(/\D/g,"");}
+
+function normalizePhoneDigits(phone){
+  let d = cleanPhone(phone);
+  if(d.length === 11 && d[0] === "8") d = "7" + d.slice(1);
+  if(d.length === 10 && d[0] === "9") d = "7" + d;
+  return d;
+}
+
+function formatPhone(phone){
+  const d = normalizePhoneDigits(phone);
+  if(d.length === 11 && d[0] === "7"){
+    return `+7 ${d.slice(1,4)} ${d.slice(4,7)}-${d.slice(7,9)}-${d.slice(9,11)}`;
+  }
+  return phone || "";
+}
+
+function phoneMatches(clientPhone, query){
+  const q = normalizePhoneDigits(query);
+  if(!q || q.length < 3) return false;
+  const p = normalizePhoneDigits(clientPhone);
+  if(!p) return false;
+  const qNoCountry = q.replace(/^7/,"").replace(/^8/,"");
+  return p.includes(q) || p.endsWith(q) || p.slice(1).includes(qNoCountry) || p.endsWith(qNoCountry);
+}
+
+function setupPhoneFormatting(){
+  const phone = document.getElementById("phone");
+  if(!phone) return;
+  phone.addEventListener("blur",()=>{ phone.value = formatPhone(phone.value); });
+  phone.addEventListener("paste",()=>setTimeout(()=>{ phone.value = formatPhone(phone.value); },50));
+}
+
 
 function todayStr(offset=0){
   const d = new Date();
@@ -576,7 +676,7 @@ function formatDate(dateStr){
 }
 
 function getStatus(c){
-  if(c.is_incoming) return "Входящие заявки";
+  if(c.transferred) return "Переданные";
   return oldStatusMap[c.status] || c.status || "Новый клиент";
 }
 
@@ -596,10 +696,14 @@ function mapFromDb(c){
   const status = getStatus(c);
   const districts = normalizeArray(c.districts, c.district);
   const objectTypes = normalizeArray(c.object_types, "");
+  const transferParts = String(c.transfer_income || "").split("|");
+  const transferIncome = transferParts[0] || "";
+  const transferPercent = transferParts[1] || "";
+
   return {
     id:c.id,
     name:c.name || "",
-    phone:c.phone || "",
+    phone:formatPhone(c.phone || ""),
     source:c.source || "Звонок",
     sourceDetail:c.source_detail || "",
     status,
@@ -617,27 +721,27 @@ function mapFromDb(c){
     reminderTime:c.reminder_time || "",
     note:c.note || "",
     history:c.history || [],
-    transferred:!!c.transferred,
+    transferred:!!c.transferred || status==="Переданные",
     transferTo:c.transfer_to || "",
     transferDate:c.transfer_date || "",
     transferComment:c.transfer_comment || "",
-    transferStatus:c.transfer_status || "",
-    transferIncome:c.transfer_income || "",
+    transferStatus:c.transfer_status || "В работе",
+    transferIncome,
+    transferPercent,
     transferPaid:!!c.transfer_paid,
-    isIncoming:!!c.is_incoming,
     createdAt:c.created_at,
     updatedAt:c.updated_at
   };
 }
 
 function mapToDb(c){
-  const isIncoming = c.status === "Входящие заявки";
+  const transferIncomePacked = `${c.transferIncome || ""}|${c.transferPercent || ""}`;
   return {
     name:c.name,
-    phone:c.phone,
+    phone:formatPhone(c.phone),
     source:c.source,
     source_detail:c.sourceDetail,
-    status:c.status,
+    status:c.transferred ? "Переданные" : c.status,
     client_type:c.clientType,
     city:c.city,
     district:(c.districts || []).join(", "),
@@ -657,9 +761,9 @@ function mapToDb(c){
     transfer_date:c.transferDate || null,
     transfer_comment:c.transferComment,
     transfer_status:c.transferStatus,
-    transfer_income:c.transferIncome,
+    transfer_income:transferIncomePacked,
     transfer_paid:!!c.transferPaid,
-    is_incoming:isIncoming,
+    is_incoming:false,
     updated_at:new Date().toISOString()
   };
 }
@@ -677,18 +781,33 @@ async function loadClients(){
 function render(){
   renderBoard();
   updateStats();
+  updateAnalytics();
   renderTasks(getDefaultTasks(), "🔥 Ближайшие задачи");
+}
+
+
+function passesSearch(c,q){
+  q = (q || "").toLowerCase().trim();
+  if(!q) return true;
+
+  const text = [
+    c.name, c.phone, c.district, c.note, c.source, c.sourceDetail, c.budget
+  ].join(" ").toLowerCase();
+
+  if(text.includes(q)) return true;
+  if(/[0-9]/.test(q) && phoneMatches(c.phone,q)) return true;
+  return false;
 }
 
 function renderBoard(){
   const board = document.getElementById("board");
-  const q = document.getElementById("searchInput").value.toLowerCase();
+  const q = document.getElementById("searchInput").value;
   board.innerHTML = "";
 
   statuses.forEach(status=>{
     const filtered = clients
       .filter(c=>c.status===status)
-      .filter(c=>(String(c.name)+String(c.phone)+String(c.district)+String(c.note)).toLowerCase().includes(q))
+      .filter(c=>passesSearch(c,q))
       .sort(compareByReminder);
 
     const col = document.createElement("div");
@@ -712,6 +831,7 @@ function renderBoard(){
         ${c.districts?.length ? `<div class="card-line">📍 ${c.districts.slice(0,3).join(", ")}${c.districts.length>3 ? "..." : ""}</div>` : ""}
         ${c.budget ? `<div class="card-line">💰 ${c.budget}</div>` : ""}
         ${renderReminderLine(c)}
+        ${c.status==="Переданные" ? renderTransferLine(c) : ""}
         <div class="tags">
           <span class="tag ${tagClass(c.tag)}">${c.tag || ""}</span>
           ${c.source ? `<span class="tag">${c.source}</span>` : ""}
@@ -723,6 +843,12 @@ function renderBoard(){
 
     board.appendChild(col);
   });
+}
+
+
+function renderTransferLine(c){
+  const money = c.transferIncome ? ` • ${formatMoney(c.transferIncome)}` : "";
+  return `<div class="card-line">🤝 ${c.transferTo || "Коллега не указан"} • ${c.transferStatus || "В работе"}${money}</div>`;
 }
 
 function compareByReminder(a,b){
@@ -755,22 +881,86 @@ function tagClass(tag){
   return "";
 }
 
+function activeClient(c){
+  return !["Архив","Отказ","Сделка","Переданные"].includes(c.status);
+}
+
 function updateStats(){
   const today = todayStr(0);
   const tomorrow = todayStr(1);
-  const active = c => !["Архив","Отказ","Сделка"].includes(c.status);
+  const deals = clients.filter(c=>c.status==="Сделка").length;
+  const lost = clients.filter(c=>c.status==="Отказ").length;
+  const conv = (deals + lost) ? Math.round((deals / (deals + lost)) * 100) : 0;
+
   document.getElementById("totalCount").innerText = clients.length;
-  document.getElementById("todayCount").innerText = clients.filter(c=>active(c) && c.reminderDate===today).length;
-  document.getElementById("tomorrowCount").innerText = clients.filter(c=>active(c) && c.reminderDate===tomorrow).length;
-  document.getElementById("overdueCount").innerText = clients.filter(c=>active(c) && c.reminderDate && c.reminderDate<today).length;
-  document.getElementById("transferCount").innerText = clients.filter(c=>c.transferred).length;
+  document.getElementById("todayCount").innerText = clients.filter(c=>activeClient(c) && c.reminderDate===today).length;
+  document.getElementById("tomorrowCount").innerText = clients.filter(c=>activeClient(c) && c.reminderDate===tomorrow).length;
+  document.getElementById("overdueCount").innerText = clients.filter(c=>activeClient(c) && c.reminderDate && c.reminderDate<today).length;
+  document.getElementById("conversionRate").innerText = conv + "%";
+}
+
+function daysAgo(n){
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+}
+
+function parseDate(dateValue){
+  if(!dateValue) return new Date(0);
+  return new Date(dateValue);
+}
+
+function updateAnalytics(){
+  const today = todayStr(0);
+  const weekAgo = daysAgo(7);
+  const monthAgo = daysAgo(30);
+
+  const deals = clients.filter(c=>c.status==="Сделка").length;
+  const lost = clients.filter(c=>c.status==="Отказ").length;
+  const archive = clients.filter(c=>c.status==="Архив").length;
+  const transferred = clients.filter(c=>c.status==="Переданные");
+
+  const addedToday = clients.filter(c=>(c.createdAt || "").startsWith(today)).length;
+  const addedWeek = clients.filter(c=>parseDate(c.createdAt) >= weekAgo).length;
+  const addedMonth = clients.filter(c=>parseDate(c.createdAt) >= monthAgo).length;
+
+  const tDeal = transferred.filter(c=>c.transferStatus==="Сделка").length;
+  const tLost = transferred.filter(c=>c.transferStatus==="Отказ" || c.transferStatus==="Не получилось").length;
+  const tWork = transferred.length - tDeal - tLost;
+  const tConv = (tDeal + tLost) ? Math.round((tDeal / (tDeal + tLost)) * 100) : 0;
+  const money = transferred.reduce((sum,c)=>sum + moneyToNumber(c.transferIncome),0);
+
+  document.getElementById("addedToday").innerText = addedToday;
+  document.getElementById("addedWeek").innerText = addedWeek;
+  document.getElementById("addedMonth").innerText = addedMonth;
+  document.getElementById("dealsCount").innerText = deals;
+  document.getElementById("lostCount").innerText = lost;
+  document.getElementById("archiveCount").innerText = archive;
+
+  document.getElementById("transferTotal").innerText = transferred.length;
+  document.getElementById("transferWork").innerText = tWork;
+  document.getElementById("transferDeal").innerText = tDeal;
+  document.getElementById("transferLost").innerText = tLost;
+  document.getElementById("transferConversion").innerText = tConv + "%";
+  document.getElementById("transferMoney").innerText = formatMoney(money);
+}
+
+function moneyToNumber(value){
+  const n = Number(String(value || "").replace(/\D/g,""));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatMoney(value){
+  const n = moneyToNumber(value);
+  if(!n) return "0 ₽";
+  return n.toLocaleString("ru-RU") + " ₽";
 }
 
 function getDefaultTasks(){
   const today = todayStr(0);
   const tomorrow = todayStr(1);
   return clients
-    .filter(c=>c.reminderDate && c.reminderDate<=tomorrow && !["Архив","Отказ","Сделка"].includes(c.status))
+    .filter(c=>c.reminderDate && c.reminderDate<=tomorrow && activeClient(c))
     .sort(compareByReminder)
     .slice(0,8);
 }
@@ -804,15 +994,15 @@ function showTaskGroup(type){
 
   if(type==="overdue"){
     title = "🔴 Просроченные клиенты";
-    items = clients.filter(c=>c.reminderDate && c.reminderDate<today);
+    items = clients.filter(c=>activeClient(c) && c.reminderDate && c.reminderDate<today);
   }
   if(type==="today"){
     title = "🟡 Клиенты на сегодня";
-    items = clients.filter(c=>c.reminderDate===today);
+    items = clients.filter(c=>activeClient(c) && c.reminderDate===today);
   }
   if(type==="tomorrow"){
     title = "🟢 Клиенты на завтра";
-    items = clients.filter(c=>c.reminderDate===tomorrow);
+    items = clients.filter(c=>activeClient(c) && c.reminderDate===tomorrow);
   }
   renderTasks(items.sort(compareByReminder), title);
 }
@@ -845,7 +1035,9 @@ function renderStatusButtons(){
     btn.innerText = s;
     btn.onclick = ()=>{
       currentStatus = s;
+      transferredValue = s === "Переданные";
       renderStatusButtons();
+      updateTransferButtons();
     };
     box.appendChild(btn);
   });
@@ -892,13 +1084,13 @@ function openClient(id){
   if(!c) return;
   currentId = id;
   currentStatus = c.status || "Новый клиент";
-  transferredValue = !!c.transferred;
+  transferredValue = currentStatus === "Переданные" || !!c.transferred;
   transferPaidValue = !!c.transferPaid;
 
   document.getElementById("modalTitle").innerText = c.name || "Клиент";
   document.getElementById("modalSub").innerText = c.phone || "Карточка клиента";
 
-  ["name","phone","source","sourceDetail","clientType","city","budget","firstPay","monthPay","dealType","tag","reminderDate","reminderTime","note","transferTo","transferDate","transferStatus","transferIncome","transferComment"].forEach(id=>{
+  ["name","phone","source","sourceDetail","clientType","city","budget","firstPay","monthPay","dealType","tag","reminderDate","reminderTime","note","transferTo","transferDate","transferStatus","transferIncome","transferPercent","transferComment"].forEach(id=>{
     document.getElementById(id).value = c[id] || "";
   });
 
@@ -912,13 +1104,13 @@ function openClient(id){
 }
 
 function clearForm(){
-  ["name","phone","sourceDetail","budget","firstPay","monthPay","reminderDate","reminderTime","note","historyText","transferTo","transferDate","transferIncome","transferComment"].forEach(id=>document.getElementById(id).value="");
+  ["name","phone","sourceDetail","budget","firstPay","monthPay","reminderDate","reminderTime","note","historyText","transferTo","transferDate","transferIncome","transferPercent","transferComment"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("source").value="Звонок";
   document.getElementById("clientType").value="Покупатель";
   document.getElementById("city").value="Краснодар";
   document.getElementById("dealType").value="Семейная до 7 лет";
   document.getElementById("tag").value="Горячий";
-  document.getElementById("transferStatus").value="";
+  document.getElementById("transferStatus").value="В работе";
   currentStatus = "Новый клиент";
   transferredValue = false;
   transferPaidValue = false;
@@ -928,12 +1120,13 @@ function clearForm(){
 }
 
 function collectForm(){
+  const status = transferredValue ? "Переданные" : currentStatus;
   return {
     name:document.getElementById("name").value.trim(),
-    phone:document.getElementById("phone").value.trim(),
+    phone:formatPhone(document.getElementById("phone").value.trim()),
     source:document.getElementById("source").value,
     sourceDetail:document.getElementById("sourceDetail").value.trim(),
-    status:currentStatus,
+    status,
     clientType:document.getElementById("clientType").value,
     city:document.getElementById("city").value,
     districts:getSelectedChecks("districtChecks"),
@@ -946,11 +1139,12 @@ function collectForm(){
     reminderDate:document.getElementById("reminderDate").value,
     reminderTime:document.getElementById("reminderTime").value,
     note:document.getElementById("note").value.trim(),
-    transferred:transferredValue,
+    transferred:transferredValue || status==="Переданные",
     transferTo:document.getElementById("transferTo").value.trim(),
     transferDate:document.getElementById("transferDate").value,
     transferStatus:document.getElementById("transferStatus").value,
     transferIncome:document.getElementById("transferIncome").value.trim(),
+    transferPercent:document.getElementById("transferPercent").value.trim(),
     transferComment:document.getElementById("transferComment").value.trim(),
     transferPaid:transferPaidValue
   };
@@ -965,7 +1159,7 @@ async function saveClient(){
 
   try{
     const data = collectForm();
-    const phone = cleanPhone(data.phone);
+    const phone = normalizePhoneDigits(data.phone);
 
     if(!data.name && !data.phone){
       alert("Заполни хотя бы имя или телефон");
@@ -973,7 +1167,7 @@ async function saveClient(){
     }
 
     if(!currentId && phone){
-      const duplicate = clients.find(c=>cleanPhone(c.phone)===phone && c.status!=="Архив" && c.status!=="Отказ");
+      const duplicate = clients.find(c=>normalizePhoneDigits(c.phone)===phone && c.status!=="Архив" && c.status!=="Отказ");
       if(duplicate){
         if(confirm(`Клиент с таким номером уже есть:\n\n${duplicate.name}\n${duplicate.phone}\n\nОткрыть карточку?`)){
           openClient(duplicate.id);
@@ -1015,7 +1209,18 @@ async function saveClient(){
     document.getElementById("historyText").value = "";
     btn.innerText = "✓ Сохранено";
     render();
-    openClient(currentId);
+
+    const saved = clients.find(c=>c.id===currentId);
+    if(saved){
+      currentStatus = saved.status;
+      transferredValue = saved.status==="Переданные";
+      renderStatusButtons();
+      updateTransferButtons();
+      renderHistory(saved.history || []);
+      document.getElementById("modalTitle").innerText = saved.name || "Клиент";
+      document.getElementById("modalSub").innerText = saved.phone || "Карточка клиента";
+    }
+
     setTimeout(()=>btn.innerText = "Сохранить", 1100);
 
   }catch(error){
@@ -1028,7 +1233,7 @@ async function saveClient(){
 
 async function deleteClient(){
   if(!currentId) return closeModal();
-  if(!confirm("Удалить клиента?")) return;
+  if(!confirm("Удалить клиента? Лучше использовать Отказ или Архив. Всё равно удалить?")) return;
 
   const { error } = await db.from("clients").delete().eq("id", currentId);
   if(error){
@@ -1046,6 +1251,8 @@ function closeModal(){
 
 function toggleTransferred(){
   transferredValue = !transferredValue;
+  currentStatus = transferredValue ? "Переданные" : (currentStatus==="Переданные" ? "В работе" : currentStatus);
+  renderStatusButtons();
   updateTransferButtons();
 }
 
