@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kiktev CRM 1.5.3</title>
+<title>Kiktev CRM 1.5.3.1</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -220,10 +220,66 @@ label{font-size:13px;color:#334155;font-weight:700}
   border-radius:12px;
 }
 .board-scrollbar-inner{height:1px}
-.multi-select{
-  min-height:118px;
+.multi-dropdown{
+  position:relative;
   margin-top:8px;
 }
+.multi-toggle{
+  width:100%;
+  background:#fff;
+  color:#334155;
+  border:1px solid var(--line);
+  box-shadow:none;
+  text-align:left;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:44px;
+}
+.multi-toggle span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:700;
+}
+.multi-toggle::after{
+  content:"▾";
+  color:#64748b;
+  flex:0 0 auto;
+}
+.multi-dropdown.open .multi-toggle::after{content:"▴"}
+.multi-panel{
+  display:none;
+  position:absolute;
+  left:0;right:0;top:calc(100% + 6px);
+  z-index:30;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 18px 45px rgba(15,23,42,.16);
+  padding:8px;
+  max-height:260px;
+  overflow:auto;
+}
+.multi-dropdown.open .multi-panel{display:block}
+.multi-option{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:9px 8px;
+  border-radius:10px;
+  font-size:14px;
+  color:#334155;
+  cursor:pointer;
+}
+.multi-option:hover{background:#f1f5f9}
+.multi-option input{
+  width:auto;
+  margin:0;
+  accent-color:var(--blue);
+}
+.multi-summary{font-size:12px;color:var(--muted);margin-top:6px}
 .other-field{display:none}
 .other-field.show{display:block}
 .rejection-box{
@@ -399,7 +455,7 @@ label{font-size:13px;color:#334155;font-weight:700}
 <header class="header">
   <div class="header-row">
     <div class="logo">
-      <h1>🏠 Kiktev CRM 1.5.3</h1>
+      <h1>🏠 Kiktev CRM 1.5.3.1</h1>
       <div>Личная доска клиентов по недвижимости</div>
     </div>
     <div class="header-actions">
@@ -510,15 +566,15 @@ label{font-size:13px;color:#334155;font-weight:700}
         </div>
         <div class="other-field" id="cityOtherWrap"><label>Укажите город</label><input id="cityOther" placeholder="Например: Ростов-на-Дону"></div>
 
-        <div class="full">
+        <div>
           <label>Что рассматривает</label>
-          <select class="multi-select" id="objectTypeChecks" multiple></select>
-          <div class="small-note">Можно выбрать несколько вариантов через Ctrl/Shift или тапами на телефоне</div>
+          <div class="multi-dropdown" id="objectTypeChecks"></div>
+          <div class="small-note">Можно выбрать несколько вариантов галочками</div>
         </div>
 
-        <div class="full">
+        <div>
           <label>Районы</label>
-          <select class="multi-select" id="districtChecks" multiple onchange="updateOtherFields()"></select>
+          <div class="multi-dropdown" id="districtChecks"></div>
           <div class="other-field" id="districtOtherWrap"><label>Укажите район</label><input id="districtOther" placeholder="Например: район или населённый пункт"></div>
           <div class="small-note">Можно выбрать несколько районов. Если выбрано «Другое» — укажи вручную.</div>
         </div>
@@ -1231,37 +1287,62 @@ function renderStatusButtons(){
 function renderChecks(containerId, list, selected){
   const box = document.getElementById(containerId);
   box.innerHTML = "";
-  if(box.tagName === "SELECT"){
-    list.forEach(item=>{
-      const opt = document.createElement("option");
-      opt.value = item;
-      opt.innerText = item;
-      opt.selected = selected.includes(item);
-      box.appendChild(opt);
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "multi-toggle";
+  toggle.innerHTML = `<span></span>`;
+  toggle.onclick = (e)=>{
+    e.stopPropagation();
+    document.querySelectorAll(".multi-dropdown.open").forEach(el=>{
+      if(el.id !== containerId) el.classList.remove("open");
     });
-    return;
-  }
+    box.classList.toggle("open");
+  };
+
+  const panel = document.createElement("div");
+  panel.className = "multi-panel";
+
   list.forEach(item=>{
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "chip" + (selected.includes(item) ? " active" : "");
-    btn.innerText = item;
-    btn.onclick = ()=>{
-      btn.classList.toggle("active");
+    const row = document.createElement("label");
+    row.className = "multi-option";
+    row.innerHTML = `<input type="checkbox" value="${item}"> <span>${item}</span>`;
+    const input = row.querySelector("input");
+    input.checked = selected.includes(item);
+    input.onchange = ()=>{
+      updateMultiSummary(containerId);
       updateOtherFields();
     };
-    box.appendChild(btn);
+    panel.appendChild(row);
   });
+
+  const summary = document.createElement("div");
+  summary.className = "multi-summary";
+
+  box.appendChild(toggle);
+  box.appendChild(panel);
+  box.appendChild(summary);
+  updateMultiSummary(containerId);
+}
+
+function updateMultiSummary(containerId){
+  const box = document.getElementById(containerId);
+  const values = Array.from(box.querySelectorAll("input[type='checkbox']:checked")).map(i=>i.value);
+  const label = box.querySelector(".multi-toggle span");
+  const summary = box.querySelector(".multi-summary");
+  if(!values.length){
+    label.textContent = "Выбрать";
+    summary.textContent = "Ничего не выбрано";
+  }else{
+    label.textContent = values.slice(0,3).join(", ") + (values.length>3 ? ` +${values.length-3}` : "");
+    summary.textContent = `Выбрано: ${values.length}`;
+  }
 }
 
 function getSelectedChecks(containerId){
   const el = document.getElementById(containerId);
-  let values = [];
-  if(el.tagName === "SELECT"){
-    values = Array.from(el.selectedOptions).map(o=>o.value);
-  }else{
-    values = Array.from(document.querySelectorAll(`#${containerId} .chip.active`)).map(b=>b.innerText);
-  }
+  let values = Array.from(el.querySelectorAll("input[type='checkbox']:checked")).map(i=>i.value);
+
   if(containerId === "districtChecks" && values.includes("Другое")){
     const other = document.getElementById("districtOther").value.trim();
     if(other) values = values.filter(v=>v!=="Другое").concat(other);
@@ -1271,25 +1352,33 @@ function getSelectedChecks(containerId){
 
 function setSelectedChecks(containerId, selected){
   const el = document.getElementById(containerId);
-  if(el.tagName === "SELECT"){
-    const known = Array.from(el.options).map(o=>o.value);
-    let otherValues = [];
-    Array.from(el.options).forEach(opt=>{
-      opt.selected = selected.includes(opt.value);
-    });
-    if(containerId === "districtChecks"){
-      otherValues = selected.filter(v=>!known.includes(v));
-      if(otherValues.length){
-        Array.from(el.options).forEach(opt=>{ if(opt.value === "Другое") opt.selected = true; });
-        document.getElementById("districtOther").value = otherValues.join(", ");
-      }
-    }
-    return;
-  }
-  document.querySelectorAll(`#${containerId} .chip`).forEach(btn=>{
-    btn.classList.toggle("active", selected.includes(btn.innerText));
+  const known = Array.from(el.querySelectorAll("input[type='checkbox']")).map(i=>i.value);
+  let otherValues = [];
+
+  el.querySelectorAll("input[type='checkbox']").forEach(input=>{
+    input.checked = selected.includes(input.value);
   });
+
+  if(containerId === "districtChecks"){
+    otherValues = selected.filter(v=>!known.includes(v));
+    if(otherValues.length){
+      const otherCheckbox = Array.from(el.querySelectorAll("input[type='checkbox']")).find(i=>i.value === "Другое");
+      if(otherCheckbox) otherCheckbox.checked = true;
+      document.getElementById("districtOther").value = otherValues.join(", ");
+    }
+  }
+
+  updateMultiSummary(containerId);
+  updateOtherFields();
 }
+
+function closeMultiDropdowns(){
+  document.querySelectorAll(".multi-dropdown.open").forEach(el=>el.classList.remove("open"));
+}
+
+document.addEventListener("click", (e)=>{
+  if(!e.target.closest(".multi-dropdown")) closeMultiDropdowns();
+});
 
 function openNewClient(){
   currentId = null;
@@ -1545,7 +1634,7 @@ function updateOtherFields(){
   const cityOther = document.getElementById("city").value === "Другое";
   document.getElementById("cityOtherWrap").classList.toggle("show", cityOther);
 
-  const districtValues = Array.from(document.getElementById("districtChecks").selectedOptions || []).map(o=>o.value);
+  const districtValues = Array.from(document.querySelectorAll("#districtChecks input[type='checkbox']:checked")).map(i=>i.value);
   document.getElementById("districtOtherWrap").classList.toggle("show", districtValues.includes("Другое"));
 
   const isOwnDeal = currentStatus === "Сделка" && !transferredValue;
