@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kiktev CRM 1.5.1</title>
+<title>Kiktev CRM 1.5.3</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --bg:#f4f9ff;
-  --bg2:#eaf4ff;
+  --bg:#eef2f7;
+  --bg2:#f8fafc;
   --card:#ffffff;
   --text:#172033;
   --muted:#64748b;
@@ -25,7 +25,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:Inter,Arial,sans-serif;
-  background:linear-gradient(135deg,#f8fbff 0%,#eaf4ff 55%,#f7fbff 100%);
+  background:linear-gradient(135deg,#eef2f7 0%,#f8fafc 55%,#eaf4ff 100%);
   color:var(--text);
   min-height:100vh;
 }
@@ -150,7 +150,7 @@ label{font-size:13px;color:#334155;font-weight:700}
 .column{
   min-width:292px;
   max-width:292px;
-  background:rgba(255,255,255,.72);
+  background:#f8fafc;
   border:1px solid var(--line);
   border-radius:20px;
   padding:12px;
@@ -179,6 +179,66 @@ label{font-size:13px;color:#334155;font-weight:700}
   box-shadow:0 8px 20px rgba(15,23,42,.06);
   transition:.15s ease;
 }
+
+.card.overdue{
+  background:#fff1f2;
+  border-color:#fecdd3;
+  border-left:6px solid #ef4444;
+}
+.card.today{
+  background:#fffbeb;
+  border-color:#fde68a;
+  border-left:6px solid #f59e0b;
+}
+.card.tomorrow{
+  background:#f0fdf4;
+  border-color:#bbf7d0;
+  border-left:6px solid #16a34a;
+}
+.urgency-badge{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:900;
+  margin-bottom:7px;
+}
+.urgency-badge.overdue{background:#fee2e2;color:#991b1b}
+.urgency-badge.today{background:#fef3c7;color:#92400e}
+.urgency-badge.tomorrow{background:#dcfce7;color:#166534}
+.board-scrollbar{
+  position:sticky;
+  bottom:0;
+  z-index:4;
+  overflow-x:auto;
+  overflow-y:hidden;
+  height:18px;
+  background:rgba(238,242,247,.92);
+  backdrop-filter:blur(10px);
+  border-top:1px solid #dbeafe;
+  border-radius:12px;
+}
+.board-scrollbar-inner{height:1px}
+.multi-select{
+  min-height:118px;
+  margin-top:8px;
+}
+.other-field{display:none}
+.other-field.show{display:block}
+.rejection-box{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  border-radius:18px;
+  padding:12px;
+}
+.deal-box{
+  background:#f0fdf4;
+  border:1px solid #bbf7d0;
+  border-radius:18px;
+  padding:12px;
+}
+
 .card:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(15,23,42,.09)}
 .card-name{font-weight:800;margin-bottom:5px}
 .card-line{font-size:13px;color:#334155;margin:4px 0}
@@ -339,7 +399,7 @@ label{font-size:13px;color:#334155;font-weight:700}
 <header class="header">
   <div class="header-row">
     <div class="logo">
-      <h1>🏠 Kiktev CRM 1.5.1</h1>
+      <h1>🏠 Kiktev CRM 1.5.3</h1>
       <div>Личная доска клиентов по недвижимости</div>
     </div>
     <div class="header-actions">
@@ -368,6 +428,7 @@ label{font-size:13px;color:#334155;font-weight:700}
         <div class="metric"><small>За неделю</small><b id="addedWeek">0</b></div>
         <div class="metric"><small>За месяц</small><b id="addedMonth">0</b></div>
         <div class="metric"><small>Сделки</small><b id="dealsCount">0</b></div>
+        <div class="metric"><small>Доход сделок</small><b id="dealIncomeTotal">0 ₽</b></div>
         <div class="metric"><small>Отказы</small><b id="lostCount">0</b></div>
         <div class="metric"><small>Архив</small><b id="archiveCount">0</b></div>
       </div>
@@ -378,10 +439,12 @@ label{font-size:13px;color:#334155;font-weight:700}
       <div class="analytics-grid">
         <div class="metric"><small>Всего передано</small><b id="transferTotal">0</b></div>
         <div class="metric"><small>В работе</small><b id="transferWork">0</b></div>
+        <div class="metric"><small>Бронь / задаток</small><b id="transferBron">0</b></div>
         <div class="metric"><small>Сделка</small><b id="transferDeal">0</b></div>
         <div class="metric"><small>Отказ</small><b id="transferLost">0</b></div>
         <div class="metric"><small>Конверсия</small><b id="transferConversion">0%</b></div>
-        <div class="metric"><small>Комиссия</small><b id="transferMoney">0 ₽</b></div>
+        <div class="metric"><small>План комиссии</small><b id="transferMoney">0 ₽</b></div>
+        <div class="metric"><small>Получено</small><b id="transferReceivedMoney">0 ₽</b></div>
       </div>
     </div>
   </div>
@@ -392,6 +455,7 @@ label{font-size:13px;color:#334155;font-weight:700}
   </div>
 
   <div class="board" id="board"></div>
+  <div class="board-scrollbar" id="boardScrollbar"><div class="board-scrollbar-inner" id="boardScrollbarInner"></div></div>
 
 </div>
 
@@ -420,12 +484,14 @@ label{font-size:13px;color:#334155;font-weight:700}
         <div><label>Телефон</label><input id="phone"></div>
 
         <div><label>Источник</label>
-          <select id="source">
+          <select id="source" onchange="updateOtherFields()">
             <option>Звонок</option><option>Instagram</option><option>MAX</option>
             <option>Telegram</option><option>WhatsApp</option><option>Авито</option>
-            <option>Сайт</option><option>Рекомендация</option><option>Реклама</option><option>Форма заявки</option><option>Другое</option>
+            <option>Сайт</option><option>Рекомендация</option><option>Тёплый круг</option><option>Группа ВКонтакте</option><option>Другое</option>
           </select>
         </div>
+
+        <div class="other-field" id="sourceOtherWrap"><label>Укажите источник</label><input id="sourceOther" placeholder="Например: Яндекс, знакомый, партнёр"></div>
 
         <div><label>Подробный источник</label><input id="sourceDetail"></div>
 
@@ -436,23 +502,25 @@ label{font-size:13px;color:#334155;font-weight:700}
         </div>
 
         <div><label>Город</label>
-          <select id="city">
+          <select id="city" onchange="updateOtherFields()">
             <option>Краснодар</option><option>Адыгея</option><option>Сочи</option>
             <option>Анапа</option><option>Новороссийск</option><option>Горячий Ключ</option>
             <option>Город не знает</option><option>Другое</option>
           </select>
         </div>
+        <div class="other-field" id="cityOtherWrap"><label>Укажите город</label><input id="cityOther" placeholder="Например: Ростов-на-Дону"></div>
 
         <div class="full">
           <label>Что рассматривает</label>
-          <div class="check-grid" id="objectTypeChecks"></div>
-          <div class="small-note">Можно выбрать несколько вариантов</div>
+          <select class="multi-select" id="objectTypeChecks" multiple></select>
+          <div class="small-note">Можно выбрать несколько вариантов через Ctrl/Shift или тапами на телефоне</div>
         </div>
 
         <div class="full">
           <label>Районы</label>
-          <div class="check-grid" id="districtChecks"></div>
-          <div class="small-note">Можно выбрать несколько районов</div>
+          <select class="multi-select" id="districtChecks" multiple onchange="updateOtherFields()"></select>
+          <div class="other-field" id="districtOtherWrap"><label>Укажите район</label><input id="districtOther" placeholder="Например: район или населённый пункт"></div>
+          <div class="small-note">Можно выбрать несколько районов. Если выбрано «Другое» — укажи вручную.</div>
         </div>
 
         <div><label>Бюджет до</label><input id="budget" placeholder="Например: до 8 млн"></div>
@@ -484,6 +552,29 @@ label{font-size:13px;color:#334155;font-weight:700}
         <div><label>Дата напоминания</label><input type="date" id="reminderDate"></div>
         <div><label>Время напоминания</label><input type="time" id="reminderTime"></div>
 
+        <div class="full deal-box other-field" id="dealIncomeWrap">
+          <label>💰 Комиссия по моей сделке</label>
+          <input id="dealIncome" placeholder="Например: 150000">
+          <div class="small-note">Показывается, когда клиент в статусе «Сделка» и не передан коллеге.</div>
+        </div>
+
+        <div class="full rejection-box other-field" id="rejectReasonWrap">
+          <label>Причина отказа</label>
+          <select id="rejectReason" onchange="updateOtherFields()">
+            <option></option>
+            <option>Сам нашёл объект</option>
+            <option>Передумал покупать</option>
+            <option>Отказ по ипотеке</option>
+            <option>Не прошёл по бюджету</option>
+            <option>Ушёл к другому агенту</option>
+            <option>Агент / не клиент</option>
+            <option>Негативный клиент</option>
+            <option>Не выходит на связь</option>
+            <option>Другое</option>
+          </select>
+          <div class="other-field" id="rejectOtherWrap"><label>Укажите причину</label><input id="rejectOther" placeholder="Коротко"></div>
+        </div>
+
         <div class="full request-box">
           <label>📋 Основной запрос клиента</label>
           <textarea id="note" rows="5" placeholder="Что ищет клиент, важные параметры, районы, бюджет, ипотека..."></textarea>
@@ -511,15 +602,17 @@ label{font-size:13px;color:#334155;font-weight:700}
             <div><label>Кому передан</label><input id="transferTo" placeholder="Имя коллеги"></div>
             <div><label>Дата передачи</label><input type="date" id="transferDate"></div>
             <div><label>Статус у коллеги</label>
-              <select id="transferStatus">
+              <select id="transferStatus" onchange="if(transferredValue){currentStatus=getTransferBoardStatus(this.value);renderStatusButtons();}updateOtherFields();">
                 <option>В работе</option>
+                <option>Бронь / задаток</option>
                 <option>Сделка</option>
                 <option>Отказ</option>
                 <option>Ожидаю информацию</option>
               </select>
             </div>
             <div><label>Комиссия %</label><input id="transferPercent" placeholder="Например: 20%"></div>
-            <div><label>Комиссия ₽</label><input id="transferIncome" placeholder="Например: 50000"></div>
+            <div><label>Планируемая комиссия ₽</label><input id="transferIncome" placeholder="Например: 50000"></div>
+            <div><label>Полученная комиссия ₽</label><input id="transferReceived" placeholder="Например: 50000"></div>
             <div><label>Комментарий</label><input id="transferComment" placeholder="Коротко"></div>
           </div>
           <div class="small-note">Если включить «Передан коллеге», клиент будет отображаться только в столбце «Переданные».</div>
@@ -553,10 +646,13 @@ const statuses = [
   "В работе",
   "Бронь / задаток",
   "Отложенный",
-  "Переданные",
   "Сделка",
   "Отказ",
-  "Архив"
+  "Архив",
+  "Переданные / в работе",
+  "Переданные / бронь / задаток",
+  "Переданные / сделка",
+  "Переданные / отказ"
 ];
 
 const oldStatusMap = {
@@ -623,6 +719,7 @@ function initApp(){
   db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   renderStaticControls();
   setupPhoneFormatting();
+  setupBoardScrollbar();
   loadClients();
 }
 
@@ -675,8 +772,26 @@ function formatDate(dateStr){
   return dateStr.split("-").reverse().join(".");
 }
 
+function getTransferBoardStatus(transferStatus){
+  if(transferStatus==="Сделка") return "Переданные / сделка";
+  if(transferStatus==="Отказ" || transferStatus==="Не получилось") return "Переданные / отказ";
+  if(transferStatus==="Бронь / задаток") return "Переданные / бронь / задаток";
+  return "Переданные / в работе";
+}
+
+function statusToTransferStatus(status){
+  if(status==="Переданные / сделка") return "Сделка";
+  if(status==="Переданные / отказ") return "Отказ";
+  if(status==="Переданные / бронь / задаток") return "Бронь / задаток";
+  return "В работе";
+}
+
+function isTransferBoardStatus(status){
+  return String(status || "").startsWith("Переданные");
+}
+
 function getStatus(c){
-  if(c.transferred) return "Переданные";
+  if(c.transferred || String(c.status || "").startsWith("Переданные")) return getTransferBoardStatus(c.transfer_status);
   return oldStatusMap[c.status] || c.status || "Новый клиент";
 }
 
@@ -696,9 +811,28 @@ function mapFromDb(c){
   const status = getStatus(c);
   const districts = normalizeArray(c.districts, c.district);
   const objectTypes = normalizeArray(c.object_types, "");
-  const transferParts = String(c.transfer_income || "").split("|");
-  const transferIncome = transferParts[0] || "";
-  const transferPercent = transferParts[1] || "";
+  const rawIncome = String(c.transfer_income || "");
+  const transferParts = rawIncome.split("|");
+  let dealIncome = "";
+  let transferIncome = "";
+  let transferPercent = "";
+  let transferReceived = "";
+  if(rawIncome.startsWith("deal|")){
+    dealIncome = transferParts[1] || "";
+  }else{
+    transferIncome = transferParts[0] || "";
+    transferPercent = transferParts[1] || "";
+    transferReceived = transferParts[2] || (c.transfer_paid ? transferIncome : "");
+  }
+  let transferComment = c.transfer_comment || "";
+  let rejectReason = "";
+  let rejectOther = "";
+  if(String(transferComment).startsWith("reject|")){
+    const rp = transferComment.split("|");
+    rejectReason = rp[1] || "";
+    rejectOther = rp[2] || "";
+    transferComment = "";
+  }
 
   return {
     id:c.id,
@@ -721,21 +855,37 @@ function mapFromDb(c){
     reminderTime:c.reminder_time || "",
     note:c.note || "",
     history:c.history || [],
-    transferred:!!c.transferred || status==="Переданные",
+    transferred:!!c.transferred || isTransferBoardStatus(status),
     transferTo:c.transfer_to || "",
     transferDate:c.transfer_date || "",
-    transferComment:c.transfer_comment || "",
-    transferStatus:c.transfer_status || "В работе",
+    transferComment,
+    transferStatus:c.transfer_status || statusToTransferStatus(status),
     transferIncome,
     transferPercent,
+    transferReceived,
     transferPaid:!!c.transfer_paid,
+    dealIncome,
+    rejectReason,
+    rejectOther,
     createdAt:c.created_at,
     updatedAt:c.updated_at
   };
 }
 
 function mapToDb(c){
-  const transferIncomePacked = `${c.transferIncome || ""}|${c.transferPercent || ""}`;
+  let transferIncomePacked = "";
+  let transferCommentValue = c.transferComment || "";
+
+  if(c.transferred){
+    transferIncomePacked = `${c.transferIncome || ""}|${c.transferPercent || ""}|${c.transferReceived || ""}`;
+  }else if(c.status === "Сделка"){
+    transferIncomePacked = `deal|${c.dealIncome || ""}`;
+  }
+
+  if(!c.transferred && c.status === "Отказ"){
+    transferCommentValue = `reject|${c.rejectReason || ""}|${c.rejectOther || ""}`;
+  }
+
   return {
     name:c.name,
     phone:formatPhone(c.phone),
@@ -759,7 +909,7 @@ function mapToDb(c){
     transferred:!!c.transferred,
     transfer_to:c.transferTo,
     transfer_date:c.transferDate || null,
-    transfer_comment:c.transferComment,
+    transfer_comment:transferCommentValue,
     transfer_status:c.transferStatus,
     transfer_income:transferIncomePacked,
     transfer_paid:!!c.transferPaid,
@@ -821,17 +971,18 @@ function renderBoard(){
 
     filtered.forEach(c=>{
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card " + getUrgencyClass(c);
       card.id = "client-card-" + c.id;
       card.onclick = ()=>openClient(c.id);
       card.innerHTML = `
+        ${getUrgencyBadge(c)}
         <div class="card-name">${c.name || "Без имени"}</div>
         <div class="card-line">📞 ${c.phone || "телефон не указан"}</div>
         ${c.objectTypes?.length ? `<div class="card-line">🏠 ${c.objectTypes.join(", ")}</div>` : ""}
         ${c.districts?.length ? `<div class="card-line">📍 ${c.districts.slice(0,3).join(", ")}${c.districts.length>3 ? "..." : ""}</div>` : ""}
         ${c.budget ? `<div class="card-line">💰 ${c.budget}</div>` : ""}
         ${renderReminderLine(c)}
-        ${c.status==="Переданные" ? renderTransferLine(c) : ""}
+        ${c.transferred ? renderTransferLine(c) : ""}
         <div class="tags">
           <span class="tag ${tagClass(c.tag)}">${c.tag || ""}</span>
           ${c.source ? `<span class="tag">${c.source}</span>` : ""}
@@ -843,12 +994,36 @@ function renderBoard(){
 
     board.appendChild(col);
   });
+  syncBoardScrollbar();
 }
 
 
+
+function getUrgencyClass(c){
+  if(!activeClient(c) || !c.reminderDate) return "";
+  const today = todayStr(0);
+  if(c.reminderDate < today) return "overdue";
+  if(c.reminderDate === today) return "today";
+  if(c.reminderDate === todayStr(1)) return "tomorrow";
+  return "";
+}
+
+function getUrgencyBadge(c){
+  const cls = getUrgencyClass(c);
+  if(!cls) return "";
+  if(cls === "overdue"){
+    const days = Math.max(1, Math.ceil((new Date(todayStr(0)) - new Date(c.reminderDate)) / 86400000));
+    return `<span class="urgency-badge overdue">🔴 ПРОСРОЧЕНО ${days} дн.</span>`;
+  }
+  if(cls === "today") return `<span class="urgency-badge today">🟡 СЕГОДНЯ</span>`;
+  if(cls === "tomorrow") return `<span class="urgency-badge tomorrow">🟢 ЗАВТРА</span>`;
+  return "";
+}
+
 function renderTransferLine(c){
-  const money = c.transferIncome ? ` • ${formatMoney(c.transferIncome)}` : "";
-  return `<div class="card-line">🤝 ${c.transferTo || "Коллега не указан"} • ${c.transferStatus || "В работе"}${money}</div>`;
+  const expected = c.transferIncome ? ` • план ${formatMoney(c.transferIncome)}` : "";
+  const received = c.transferReceived ? ` • получено ${formatMoney(c.transferReceived)}` : "";
+  return `<div class="card-line">🤝 ${c.transferTo || "Коллега не указан"} • ${c.transferStatus || "В работе"}${expected}${received}</div>`;
 }
 
 function compareByReminder(a,b){
@@ -882,7 +1057,7 @@ function tagClass(tag){
 }
 
 function activeClient(c){
-  return !["Архив","Отказ","Сделка","Переданные"].includes(c.status);
+  return !["Архив","Отказ","Сделка"].includes(c.status) && !isTransferBoardStatus(c.status);
 }
 
 function updateStats(){
@@ -918,31 +1093,37 @@ function updateAnalytics(){
   const deals = clients.filter(c=>c.status==="Сделка").length;
   const lost = clients.filter(c=>c.status==="Отказ").length;
   const archive = clients.filter(c=>c.status==="Архив").length;
-  const transferred = clients.filter(c=>c.status==="Переданные");
+  const transferred = clients.filter(c=>c.transferred || isTransferBoardStatus(c.status));
 
   const addedToday = clients.filter(c=>(c.createdAt || "").startsWith(today)).length;
   const addedWeek = clients.filter(c=>parseDate(c.createdAt) >= weekAgo).length;
   const addedMonth = clients.filter(c=>parseDate(c.createdAt) >= monthAgo).length;
 
   const tDeal = transferred.filter(c=>c.transferStatus==="Сделка").length;
+  const tBron = transferred.filter(c=>c.transferStatus==="Бронь / задаток").length;
   const tLost = transferred.filter(c=>c.transferStatus==="Отказ" || c.transferStatus==="Не получилось").length;
-  const tWork = transferred.length - tDeal - tLost;
+  const tWork = transferred.length - tDeal - tLost - tBron;
   const tConv = (tDeal + tLost) ? Math.round((tDeal / (tDeal + tLost)) * 100) : 0;
   const money = transferred.reduce((sum,c)=>sum + moneyToNumber(c.transferIncome),0);
+  const receivedMoney = transferred.reduce((sum,c)=>sum + moneyToNumber(c.transferReceived),0);
+  const dealIncomeTotal = clients.filter(c=>c.status==="Сделка" && !c.transferred).reduce((sum,c)=>sum + moneyToNumber(c.dealIncome),0);
 
   document.getElementById("addedToday").innerText = addedToday;
   document.getElementById("addedWeek").innerText = addedWeek;
   document.getElementById("addedMonth").innerText = addedMonth;
   document.getElementById("dealsCount").innerText = deals;
+  document.getElementById("dealIncomeTotal").innerText = formatMoney(dealIncomeTotal);
   document.getElementById("lostCount").innerText = lost;
   document.getElementById("archiveCount").innerText = archive;
 
   document.getElementById("transferTotal").innerText = transferred.length;
   document.getElementById("transferWork").innerText = tWork;
+  document.getElementById("transferBron").innerText = tBron;
   document.getElementById("transferDeal").innerText = tDeal;
   document.getElementById("transferLost").innerText = tLost;
   document.getElementById("transferConversion").innerText = tConv + "%";
   document.getElementById("transferMoney").innerText = formatMoney(money);
+  document.getElementById("transferReceivedMoney").innerText = formatMoney(receivedMoney);
 }
 
 function moneyToNumber(value){
@@ -1035,9 +1216,13 @@ function renderStatusButtons(){
     btn.innerText = s;
     btn.onclick = ()=>{
       currentStatus = s;
-      transferredValue = s === "Переданные";
+      transferredValue = isTransferBoardStatus(s);
+      if(transferredValue){
+        document.getElementById("transferStatus").value = statusToTransferStatus(s);
+      }
       renderStatusButtons();
       updateTransferButtons();
+      updateOtherFields();
     };
     box.appendChild(btn);
   });
@@ -1046,23 +1231,61 @@ function renderStatusButtons(){
 function renderChecks(containerId, list, selected){
   const box = document.getElementById(containerId);
   box.innerHTML = "";
+  if(box.tagName === "SELECT"){
+    list.forEach(item=>{
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.innerText = item;
+      opt.selected = selected.includes(item);
+      box.appendChild(opt);
+    });
+    return;
+  }
   list.forEach(item=>{
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "chip" + (selected.includes(item) ? " active" : "");
     btn.innerText = item;
     btn.onclick = ()=>{
-      const active = btn.classList.toggle("active");
+      btn.classList.toggle("active");
+      updateOtherFields();
     };
     box.appendChild(btn);
   });
 }
 
 function getSelectedChecks(containerId){
-  return Array.from(document.querySelectorAll(`#${containerId} .chip.active`)).map(b=>b.innerText);
+  const el = document.getElementById(containerId);
+  let values = [];
+  if(el.tagName === "SELECT"){
+    values = Array.from(el.selectedOptions).map(o=>o.value);
+  }else{
+    values = Array.from(document.querySelectorAll(`#${containerId} .chip.active`)).map(b=>b.innerText);
+  }
+  if(containerId === "districtChecks" && values.includes("Другое")){
+    const other = document.getElementById("districtOther").value.trim();
+    if(other) values = values.filter(v=>v!=="Другое").concat(other);
+  }
+  return values;
 }
 
 function setSelectedChecks(containerId, selected){
+  const el = document.getElementById(containerId);
+  if(el.tagName === "SELECT"){
+    const known = Array.from(el.options).map(o=>o.value);
+    let otherValues = [];
+    Array.from(el.options).forEach(opt=>{
+      opt.selected = selected.includes(opt.value);
+    });
+    if(containerId === "districtChecks"){
+      otherValues = selected.filter(v=>!known.includes(v));
+      if(otherValues.length){
+        Array.from(el.options).forEach(opt=>{ if(opt.value === "Другое") opt.selected = true; });
+        document.getElementById("districtOther").value = otherValues.join(", ");
+      }
+    }
+    return;
+  }
   document.querySelectorAll(`#${containerId} .chip`).forEach(btn=>{
     btn.classList.toggle("active", selected.includes(btn.innerText));
   });
@@ -1076,6 +1299,8 @@ function openNewClient(){
   clearForm();
   renderStatusButtons();
   renderHistory([]);
+  updateOtherFields();
+  syncBoardScrollbar();
   document.getElementById("clientModal").style.display = "block";
 }
 
@@ -1090,45 +1315,57 @@ function openClient(id){
   document.getElementById("modalTitle").innerText = c.name || "Клиент";
   document.getElementById("modalSub").innerText = c.phone || "Карточка клиента";
 
-  ["name","phone","source","sourceDetail","clientType","city","budget","firstPay","monthPay","dealType","tag","reminderDate","reminderTime","note","transferTo","transferDate","transferStatus","transferIncome","transferPercent","transferComment"].forEach(id=>{
+  ["name","phone","sourceDetail","clientType","budget","firstPay","monthPay","dealType","tag","reminderDate","reminderTime","note","transferTo","transferDate","transferStatus","transferIncome","transferPercent","transferReceived","transferComment","dealIncome","rejectReason","rejectOther"].forEach(id=>{
     document.getElementById(id).value = c[id] || "";
   });
+
+  setSelectOrOther("source", "sourceOther", c.source || "Звонок");
+  setSelectOrOther("city", "cityOther", c.city || "Краснодар");
 
   setSelectedChecks("districtChecks", c.districts || []);
   setSelectedChecks("objectTypeChecks", c.objectTypes || []);
   document.getElementById("historyText").value = "";
   renderStatusButtons();
   updateTransferButtons();
+  updateOtherFields();
   renderHistory(c.history || []);
   document.getElementById("clientModal").style.display = "block";
 }
 
 function clearForm(){
-  ["name","phone","sourceDetail","budget","firstPay","monthPay","reminderDate","reminderTime","note","historyText","transferTo","transferDate","transferIncome","transferPercent","transferComment"].forEach(id=>document.getElementById(id).value="");
+  ["name","phone","sourceDetail","sourceOther","cityOther","districtOther","budget","firstPay","monthPay","reminderDate","reminderTime","note","historyText","transferTo","transferDate","transferIncome","transferPercent","transferReceived","transferComment","dealIncome","rejectOther"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("source").value="Звонок";
   document.getElementById("clientType").value="Покупатель";
   document.getElementById("city").value="Краснодар";
   document.getElementById("dealType").value="Семейная до 7 лет";
   document.getElementById("tag").value="Горячий";
   document.getElementById("transferStatus").value="В работе";
+  document.getElementById("rejectReason").value="";
   currentStatus = "Новый клиент";
   transferredValue = false;
   transferPaidValue = false;
   setSelectedChecks("districtChecks", []);
   setSelectedChecks("objectTypeChecks", []);
   updateTransferButtons();
+  updateOtherFields();
 }
 
 function collectForm(){
-  const status = transferredValue ? "Переданные" : currentStatus;
+  const sourceValue = document.getElementById("source").value === "Другое"
+    ? (document.getElementById("sourceOther").value.trim() || "Другое")
+    : document.getElementById("source").value;
+  const cityValue = document.getElementById("city").value === "Другое"
+    ? (document.getElementById("cityOther").value.trim() || "Другое")
+    : document.getElementById("city").value;
+  const status = transferredValue ? getTransferBoardStatus(document.getElementById("transferStatus").value) : currentStatus;
   return {
     name:document.getElementById("name").value.trim(),
     phone:formatPhone(document.getElementById("phone").value.trim()),
-    source:document.getElementById("source").value,
+    source:sourceValue,
     sourceDetail:document.getElementById("sourceDetail").value.trim(),
     status,
     clientType:document.getElementById("clientType").value,
-    city:document.getElementById("city").value,
+    city:cityValue,
     districts:getSelectedChecks("districtChecks"),
     objectTypes:getSelectedChecks("objectTypeChecks"),
     budget:document.getElementById("budget").value.trim(),
@@ -1139,14 +1376,18 @@ function collectForm(){
     reminderDate:document.getElementById("reminderDate").value,
     reminderTime:document.getElementById("reminderTime").value,
     note:document.getElementById("note").value.trim(),
-    transferred:transferredValue || status==="Переданные",
+    transferred:transferredValue || isTransferBoardStatus(status),
     transferTo:document.getElementById("transferTo").value.trim(),
     transferDate:document.getElementById("transferDate").value,
     transferStatus:document.getElementById("transferStatus").value,
     transferIncome:document.getElementById("transferIncome").value.trim(),
     transferPercent:document.getElementById("transferPercent").value.trim(),
+    transferReceived:document.getElementById("transferReceived").value.trim(),
     transferComment:document.getElementById("transferComment").value.trim(),
-    transferPaid:transferPaidValue
+    transferPaid:transferPaidValue,
+    dealIncome:document.getElementById("dealIncome").value.trim(),
+    rejectReason:document.getElementById("rejectReason").value,
+    rejectOther:document.getElementById("rejectOther").value.trim()
   };
 }
 
@@ -1213,7 +1454,7 @@ async function saveClient(){
     const saved = clients.find(c=>c.id===currentId);
     if(saved){
       currentStatus = saved.status;
-      transferredValue = saved.status==="Переданные";
+      transferredValue = isTransferBoardStatus(saved.status) || saved.transferred;
       renderStatusButtons();
       updateTransferButtons();
       renderHistory(saved.history || []);
@@ -1251,9 +1492,10 @@ function closeModal(){
 
 function toggleTransferred(){
   transferredValue = !transferredValue;
-  currentStatus = transferredValue ? "Переданные" : (currentStatus==="Переданные" ? "В работе" : currentStatus);
+  currentStatus = transferredValue ? getTransferBoardStatus(document.getElementById("transferStatus").value) : (isTransferBoardStatus(currentStatus) ? "В работе" : currentStatus);
   renderStatusButtons();
   updateTransferButtons();
+  updateOtherFields();
 }
 
 function toggleTransferPaid(){
@@ -1281,6 +1523,54 @@ function renderHistory(history){
       </div>
     `;
   });
+}
+
+
+function setSelectOrOther(selectId, otherId, value){
+  const select = document.getElementById(selectId);
+  const values = Array.from(select.options).map(o=>o.value);
+  if(values.includes(value)){
+    select.value = value;
+    document.getElementById(otherId).value = "";
+  }else{
+    select.value = "Другое";
+    document.getElementById(otherId).value = value || "";
+  }
+}
+
+function updateOtherFields(){
+  const sourceOther = document.getElementById("source").value === "Другое";
+  document.getElementById("sourceOtherWrap").classList.toggle("show", sourceOther);
+
+  const cityOther = document.getElementById("city").value === "Другое";
+  document.getElementById("cityOtherWrap").classList.toggle("show", cityOther);
+
+  const districtValues = Array.from(document.getElementById("districtChecks").selectedOptions || []).map(o=>o.value);
+  document.getElementById("districtOtherWrap").classList.toggle("show", districtValues.includes("Другое"));
+
+  const isOwnDeal = currentStatus === "Сделка" && !transferredValue;
+  document.getElementById("dealIncomeWrap").classList.toggle("show", isOwnDeal);
+
+  const isReject = currentStatus === "Отказ" && !transferredValue;
+  document.getElementById("rejectReasonWrap").classList.toggle("show", isReject);
+  document.getElementById("rejectOtherWrap").classList.toggle("show", document.getElementById("rejectReason").value === "Другое");
+}
+
+function syncBoardScrollbar(){
+  const board = document.getElementById("board");
+  const bar = document.getElementById("boardScrollbar");
+  const inner = document.getElementById("boardScrollbarInner");
+  if(!board || !bar || !inner) return;
+  inner.style.width = board.scrollWidth + "px";
+}
+
+function setupBoardScrollbar(){
+  const board = document.getElementById("board");
+  const bar = document.getElementById("boardScrollbar");
+  if(!board || !bar) return;
+  board.addEventListener("scroll",()=>{ bar.scrollLeft = board.scrollLeft; });
+  bar.addEventListener("scroll",()=>{ board.scrollLeft = bar.scrollLeft; });
+  window.addEventListener("resize", syncBoardScrollbar);
 }
 
 function startVoiceInput(){
